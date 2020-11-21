@@ -1,1 +1,2 @@
-## 欢迎来到Ricky-Chu的主页！
+## 歡迎來到Ricky-Chu的主頁
+[English version](./README.md)
