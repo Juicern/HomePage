@@ -52,7 +52,7 @@
 
 #### Visual Studio Code
 
-Visual Studio
+#### Visual Studio
 
 #### WSL
 
