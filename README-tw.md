@@ -1,6 +1,6 @@
 # 歡迎來到Ricky-Chu的主頁
 
-[English version](./README.md) [简体中文版](./README-cn.md)
+[English version](./README.md)
 
 以下所寫，暫時只是大綱
 
