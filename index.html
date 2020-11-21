@@ -6,8 +6,13 @@
     <title>HomePage</title>
 </head>
 <body>
-    
+    <div id="content"></div>
 </body>
-<script src="./Static/js/lib/jquery.min.js"></script>
-<script src="./Static/js/lib/marked.min.js"></script>
+<script src="./node_modules/jquery/src/jquery.js"></script>
+<script src="./node_modules/marked/marked.min.js"></script>
+<script>
+    $.get('./README.md', function(response, status, xhr){
+        $("#content").html(marked(response));
+    });
+</script>
 </html>
