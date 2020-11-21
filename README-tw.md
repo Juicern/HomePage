@@ -1,8 +1,8 @@
 # 歡迎來到Ricky-Chu的主頁
 
-------
-
 [English version](./README.md)
+
+------
 
 以下所寫，暫時只是大綱
 
