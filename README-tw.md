@@ -84,6 +84,14 @@
 
 > 注意：left join與left outer join, right join 和 right outer join，沒有任何差別 
 
+##### top
+
+在sql server中似乎沒有limit這個用法，只能用top來取前n個數，如：
+
+```MSSQL
+select top 1 queston_id from survey_log
+```
+
 #### Mermaid
 
 ------
