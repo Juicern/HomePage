@@ -80,7 +80,7 @@
 
 下圖分別展示了left join, right join, inner join, outer join相關的7種用法
 
-![sql-join](C:\Users\RickyChu\OneDrive - HHU\HomePage\img\study\program language learning\sql\sql-join.png)
+![sql-join](./img/study/program%20language%20learning/sql/sql-join.png)
 
 > 注意：left join與left outer join, right join 和 right outer join，沒有任何差別 
 
@@ -107,6 +107,12 @@
 #### WSL
 
 ------
+
+#### Github
+
+------
+
+
 
 ## LeetCode整理
 
