@@ -104,6 +104,10 @@ select top 1 queston_id from survey_log
 
 ------
 
+##### 屬性
+
+* Anchor：根據form來進行對齊（注意是根據form，而不是根據父頁面）
+
 #### Visual Studio Code
 
 ------
@@ -111,6 +115,10 @@ select top 1 queston_id from survey_log
 #### Visual Studio
 
 ------
+
+##### 快捷鍵
+
+* ctrl + . （打開修補程式）
 
 #### WSL
 
