@@ -92,6 +92,26 @@
 select top 1 queston_id from survey_log
 ```
 
+##### union
+
+合并兩個或多個select語句的結果集，結果集中的列名總是等於union中第一個select語句的列名
+
+* union: 選取不同的值
+* union all: 選取所有的值（可重複）
+
+##### case 
+
+下述為示例
+
+```MSSQL
+case sex
+when '1' then '男'
+when '2' then '女'
+else ‘其他’ end
+```
+
+
+
 #### Mermaid
 
 ------
