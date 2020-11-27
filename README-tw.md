@@ -64,64 +64,94 @@ repo地址：[釘釘介面簡單呼叫](https://github.com/Ricky-Chu/WebApiTest)
 
 本專案為公司新增的呼叫釘釘介面的需求，故學習並掌握了釘釘介面的基本呼叫，能利用釘釘提供的介面進行簡便的企業管理，適合初學者練習與除錯。
 
-## 學習
+## 理論學習
 
 ------
 
-### 程式語言學習
+### 設計模式
 
 ------
 
-#### C#
+
+
+### 計算機網路
+
+------
+
+
+
+### 演算法與資料結構
 
 -------
 
 
 
-##### Linq
+### 資料庫原理
 
 -------
 
-###### Any()
+
+
+### 作業系統
+
+------
+
+
+
+## 程式語言學習
+
+------
+
+### C#
+
+-------
+
+
+
+#### Linq
+
+-------
+
+##### Any()
 
 * 使用`Any()`可判斷是否含有元素，如：`lstObject.Count > 0`與`lstObject.Any()`效果相同
 * 在裡面放置lambda表示式可以判斷是否有滿足此條件的元素，如：`lstObject.Any(x => x == key)`，可以判斷`lstObject`中是否有等於`key`的元素。
 
 ------
 
-#### JavaScript
+### JavaScript
 
 ------
 
-#### Html
+### Html
 
 ------
 
-#### Css
+### Css
 
 ------
 
-#### Python
+### Python
 
 ------
 
-#### TypeScript
+### TypeScript
 
 ------
 
-#### C++
+### C++
 
 ------
 
-#### Java
+### Java
 
 ------
 
-#### Sql
+### Sql
 
 ------
 
-##### Join
+#### Join
 
 下圖分別展示了left join, right join, inner join, outer join相關的7種用法
 
@@ -129,7 +159,7 @@ repo地址：[釘釘介面簡單呼叫](https://github.com/Ricky-Chu/WebApiTest)
 
 > 注意：left join與left outer join, right join 和 right outer join，沒有任何差別 
 
-##### top
+#### top
 
 在sql server中似乎沒有limit這個用法，只能用top來取前n個數，如：
 
@@ -137,14 +167,14 @@ repo地址：[釘釘介面簡單呼叫](https://github.com/Ricky-Chu/WebApiTest)
 select top 1 queston_id from survey_log
 ```
 
-##### union
+#### union
 
 合併兩個或多個select語句的結果集，結果集中的列名總是等於union中第一個select語句的列名
 
 * union: 選取不同的值
 * union all: 選取所有的值（可重複）
 
-##### case 
+#### case 
 
 下述為示例
 
@@ -157,27 +187,27 @@ else ‘其他’ end
 
 
 
-#### Mermaid
+### Mermaid
 
 ------
 
-### 開發工具學習
+## 開發工具學習
 
 ------
 
-#### Winform
+### Winform
 
 ------
 
-##### 屬性
+#### 屬性
 
 * Anchor：根據form來進行對齊（注意是根據form，而不是根據父頁面）
 
-#### .Net
+### .Net
 
 ------
 
-##### 一些錯誤
+#### 一些錯誤
 
 * "The underlying connection was closed: An unexpected error occurred on a send."
 
@@ -185,29 +215,45 @@ else ‘其他’ end
 
 將`HttpWebRequest`的`keep-alive`屬性變為`true`，且修改安全協議型別：`ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;`
 
-#### Visual Studio Code
+### Visual Studio Code
 
 ------
 
-#### Visual Studio
+### Visual Studio
 
 ------
 
-##### 快捷鍵
+#### 快捷鍵
 
 * `ctrl`+`.` （開啟修補程式）
 * `ctrl`+`r`（重新命名）
 * `F12`（跳轉到定義處）
 
-#### WSL
+#### 一些錯誤
+
+##### 部分檔案打不開窗體設計器 變成類.cs
+
+解決方法：在csproj檔案下修改對應的`<Compile>`，將檔案節點改為`<SubForm>Form</SubForm>`
+
+```
+<Compile Include="Form1.cs">
+	<SubType>Form</SubType>
+</Compile>  
+```
+
+
+
+
+
+### WSL
 
 ------
 
-#### Github
+### Github
 
 ------
 
-##### fork
+#### fork
 
 在已經fork的專案中，若在自己本地已經有過更改，想要推送到被fork的專案中，則需先將本地的更改push，然後在github中開啟專案，會提示與被fork的專案有不同，此時便會提示建立一個pull request，按照操作，便可將提交push到被fork的專案中，在repo的擁有者同意merge前，本地的push會一直傳到這個request。若repo的擁有者已merge，則之後的更改，則需重複上述操作，重新建立一個pull request。
 

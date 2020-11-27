@@ -64,64 +64,94 @@ repo地址：[钉钉界面简单调用](https://github.com/Ricky-Chu/WebApiTest)
 
 本项目为公司新增的调用钉钉接口的需求，故学习并掌握了钉钉接口的基本调用，能利用钉钉提供的接口进行简便的企业管理，适合初学者练习与调试。
 
-## 学习
+## 理论学习
 
 ------
 
-### 编程语言学习
+### 设计模式
 
 ------
 
-#### C#
+
+
+### 计算机网络
+
+------
+
+
+
+### 算法与数据结构
 
 -------
 
 
 
-##### Linq
+### 数据库原理
 
 -------
 
-###### Any()
+
+
+### 操作系统
+
+------
+
+
+
+## 编程语言学习
+
+------
+
+### C#
+
+-------
+
+
+
+#### Linq
+
+-------
+
+##### Any()
 
 * 使用`Any()`可判断是否含有元素，如：`lstObject.Count > 0`与`lstObject.Any()`效果相同
 * 在里面放置lambda表达式可以判断是否有满足此条件的元素，如：`lstObject.Any(x => x == key)`，可以判断`lstObject`中是否有等于`key`的元素。
 
 ------
 
-#### JavaScript
+### JavaScript
 
 ------
 
-#### Html
+### Html
 
 ------
 
-#### Css
+### Css
 
 ------
 
-#### Python
+### Python
 
 ------
 
-#### TypeScript
+### TypeScript
 
 ------
 
-#### C++
+### C++
 
 ------
 
-#### Java
+### Java
 
 ------
 
-#### Sql
+### Sql
 
 ------
 
-##### Join
+#### Join
 
 下图分别展示了left join, right join, inner join, outer join相关的7种用法
 
@@ -129,7 +159,7 @@ repo地址：[钉钉界面简单调用](https://github.com/Ricky-Chu/WebApiTest)
 
 > 注意：left join与left outer join, right join 和 right outer join，没有任何差别 
 
-##### top
+#### top
 
 在sql server中似乎没有limit这个用法，只能用top来取前n个数，如：
 
@@ -137,14 +167,14 @@ repo地址：[钉钉界面简单调用](https://github.com/Ricky-Chu/WebApiTest)
 select top 1 queston_id from survey_log
 ```
 
-##### union
+#### union
 
 合并两个或多个select语句的结果集，结果集中的列名总是等于union中第一个select语句的列名
 
 * union: 选取不同的值
 * union all: 选取所有的值（可重复）
 
-##### case 
+#### case 
 
 下述为示例
 
@@ -157,27 +187,27 @@ else ‘其他’ end
 
 
 
-#### Mermaid
+### Mermaid
 
 ------
 
-### 开发工具学习
+## 开发工具学习
 
 ------
 
-#### Winform
+### Winform
 
 ------
 
-##### 属性
+#### 属性
 
 * Anchor：根据form来进行对齐（注意是根据form，而不是根据父页面）
 
-#### .Net
+### .Net
 
 ------
 
-##### 一些错误
+#### 一些错误
 
 * "The underlying connection was closed: An unexpected error occurred on a send."
 
@@ -185,29 +215,45 @@ else ‘其他’ end
 
 将`HttpWebRequest`的`keep-alive`属性变为`true`，且修改安全协议类型：`ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;`
 
-#### Visual Studio Code
+### Visual Studio Code
 
 ------
 
-#### Visual Studio
+### Visual Studio
 
 ------
 
-##### 快捷键
+#### 快捷键
 
 * `ctrl`+`.` （打开修补程序）
 * `ctrl`+`r`（重命名）
 * `F12`（跳转到定义处）
 
-#### WSL
+#### 一些错误
+
+##### 部分文件打不开窗体设计器 变成类.cs
+
+解决方法：在csproj文件下修改对应的`<Compile>`，将文件节点改为`<SubForm>Form</SubForm>`
+
+```
+<Compile Include="Form1.cs">
+	<SubType>Form</SubType>
+</Compile>
+```
+
+
+
+
+
+### WSL
 
 ------
 
-#### Github
+### Github
 
 ------
 
-##### fork
+#### fork
 
 在已经fork的项目中，若在自己本地已经有过更改，想要推送到被fork的项目中，则需先将本地的更改push，然后在github中打开项目，会提示与被fork的项目有不同，此时便会提示创建一个pull request，按照操作，便可将提交push到被fork的项目中，在repo的拥有者同意merge前，本地的push会一直传到这个request。若repo的拥有者已merge，则之后的更改，则需重复上述操作，重新创建一个pull request。
 
