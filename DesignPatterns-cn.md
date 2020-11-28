@@ -195,5 +195,83 @@ public class N95Mask extends Mask {
 }
 ```
 
+请使用简单工厂模式完成以下代码：
 
+```Java
+public class MaskFactory {
+    public Mask create(String type){
+        // TODO: 使用简单工厂模式实现此处的逻辑
+    }
+}
+```
+
+使其通过以下客户端测试：
+
+```Java
+public class Client {
+
+    @Test
+    public void test() {
+        MaskFactory factory = new MaskFactory();
+        // 输出：这是医用口罩
+        System.out.println(factory.create("Surgical"));
+        // 输出：这是 N95 口罩
+        System.out.println(factory.create("N95"));
+    }
+}
+```
+
+答案：
+
+```Java
+public class MaskFactory {
+    public Mask create(String type){
+        // 使用简单工厂模式实现此处的逻辑
+        switch (type){
+            case "Surgical":
+                return new SurgicalMask();
+            case "N95":
+                return new N95Mask();
+            default:
+                throw new IllegalArgumentException("Unsupported mask type");
+        }
+    }
+}
+```
+
+问 2：如何用工厂方法模式实现呢？
+
+客户端测试代码：
+
+```Java
+public class Client {
+
+    @Test
+    public void test() {
+        SurgicalMaskFactory surgicalMaskFactory = new SurgicalMaskFactory();
+        // 输出：这是医用口罩
+        System.out.println(surgicalMaskFactory.create());
+        N95MaskFactory N95MaskFactory = new N95MaskFactory();
+        // 输出：这是 N95 口罩
+        System.out.println(N95MaskFactory.create());
+    }
+}
+```
+
+答案：
+
+```java
+public class SurgicalMaskFactory{
+
+    public Mask create() {
+        return new SurgicalMask();
+    }
+}
+
+public class N95MaskFactory {
+    public Mask create() {
+        return new N95Mask();
+    }
+}
+```
 
