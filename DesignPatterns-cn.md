@@ -275,3 +275,51 @@ public class N95MaskFactory {
 }
 ```
 
+
+
+### 抽象工厂模式
+
+------
+
+上一节中的工厂方法模式可以进一步优化，提取出公共的工厂接口：
+
+```java
+public interface IFactory {
+    Fruit create();
+}
+```
+
+然后苹果工厂和梨子工厂都实现此接口：
+
+```java
+public class AppleFactory implements IFactory {
+    @Override
+    public Fruit create(){
+        return new Apple();
+    }
+}
+
+public class PearFactory implements IFactory {
+    @Override
+    public Fruit create(){
+        return new Pear();
+    }
+}
+```
+
+此时，调用者可以将 `AppleFactory` 和 `PearFactory` 统一作为 `IFactory` 对象使用，调用者代码如下：
+
+```java
+public class User {
+    private void eat(){
+        IFactory appleFactory = new AppleFactory();
+        Fruit apple = appleFactory.create();
+        IFactory pearFactory = new PearFactory();
+        Fruit pear = pearFactory.create();
+        apple.eat();
+        pear.eat();
+    }
+}
+
+```
+
