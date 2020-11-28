@@ -68,11 +68,7 @@ repo地址：[钉钉界面简单调用](https://github.com/Ricky-Chu/WebApiTest)
 
 ------
 
-### 设计模式
-
-------
-
-
+### [设计模式](./DesignPatterns-cn.md)
 
 ### 计算机网络
 
