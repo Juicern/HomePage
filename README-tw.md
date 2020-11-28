@@ -68,7 +68,7 @@ repo地址：[釘釘介面簡單呼叫](https://github.com/Ricky-Chu/WebApiTest)
 
 ------
 
-### 設計模式
+### [設計模式](./DesignPatterns-tw.md)
 
 ------
 
