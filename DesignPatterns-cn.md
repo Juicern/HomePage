@@ -49,7 +49,7 @@
 
 水果工厂：
 
-```Java
+```java
 public class FruitFactory {
     public Fruit create(String type){
         switch (type){
@@ -63,7 +63,7 @@ public class FruitFactory {
 
 调用者：
 
-```Java
+```java
 public class User {
     private void eat(){
         FruitFactory fruitFactory = new FruitFactory();
@@ -77,7 +77,7 @@ public class User {
 
 事实上，将构建过程封装的好处不仅可以降低耦合，如果某个产品构造方法相当复杂，使用工厂模式可以大大减少代码重复。比如，如果生产一个苹果需要苹果种子、阳光、水分，将工厂修改如下：
 
-```Java
+```java
 public class FruitFactory {
     public Fruit create(String type) {
         switch (type) {
@@ -117,7 +117,7 @@ public class FruitFactory {
 
 苹果工厂：
 
-```Java
+```java
 public class AppleFactory {
     public Fruit create(){
         return new Apple();
@@ -127,7 +127,7 @@ public class AppleFactory {
 
 梨子工厂：
 
-```Java
+```java
 public class PearFactory {
     public Fruit create(){
         return new Pear();
@@ -137,7 +137,7 @@ public class PearFactory {
 
 调用者：
 
-```Java
+```java
 public class User {
     private void eat(){
         AppleFactory appleFactory = new AppleFactory();
@@ -154,7 +154,7 @@ public class User {
 
 这位读者请先放下手中的大刀，仔细想一想，工厂模式的第二个优点在工厂方法模式中还是存在的。当构建过程相当复杂时，工厂将构建过程封装起来，调用者可以很方便的直接使用，同样以苹果生产为例：
 
-```Java
+```java
 public class AppleFactory {
     public Fruit create(){
         AppleSeed appleSeed = new AppleSeed();
@@ -174,7 +174,7 @@ public class AppleFactory {
 
 问 1：现有医用口罩和 N95 口罩两种产品，都继承自 Mask 类：
 
-```Java
+```java
 abstract class Mask {
 }
 
@@ -197,7 +197,7 @@ public class N95Mask extends Mask {
 
 请使用简单工厂模式完成以下代码：
 
-```Java
+```java
 public class MaskFactory {
     public Mask create(String type){
         // TODO: 使用简单工厂模式实现此处的逻辑
@@ -207,7 +207,7 @@ public class MaskFactory {
 
 使其通过以下客户端测试：
 
-```Java
+```java
 public class Client {
 
     @Test
@@ -223,7 +223,7 @@ public class Client {
 
 答案：
 
-```Java
+```java
 public class MaskFactory {
     public Mask create(String type){
         // 使用简单工厂模式实现此处的逻辑
@@ -243,7 +243,7 @@ public class MaskFactory {
 
 客户端测试代码：
 
-```Java
+```java
 public class Client {
 
     @Test
@@ -320,6 +320,5 @@ public class User {
         pear.eat();
     }
 }
-
 ```
 
