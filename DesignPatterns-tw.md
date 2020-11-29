@@ -2071,6 +2071,148 @@ DataInputStream 用於更加方便的讀取 int、double 等內容，觀察 Data
 
 
 
+### 外觀模式
+
+-------
+
+外觀模式非常簡單，體現的就是 Java 中封裝的思想。將多個子系統封裝起來，提供一個更簡潔的介面供外部呼叫。
+
+> 外觀模式：外部與一個子系統的通訊必須透過一個統一的外觀物件進行，為子系統中的一組介面提供一個一致的介面，外觀模式定義了一個高層介面，這個介面使得這一子系統更加容易使用。外觀模式又稱為門面模式。
+
+舉個例子，比如我們每天開啟電腦時，都需要做三件事：
+
+* 開啟瀏覽器
+
+* 開啟 IDE
+
+* 開啟微信
+
+每天下班時，關機前需要做三件事：
+
+* 關閉瀏覽器
+
+* 關閉 IDE
+
+* 關閉微信
+
+用程式模擬如下：
+
+新建瀏覽器類：
+
+```java
+public class Browser {
+    public static void open() {
+        System.out.println("開啟瀏覽器");
+    }
+
+    public static void close() {
+        System.out.println("關閉瀏覽器");
+    }
+}
+```
+
+新建 IDE 類：
+
+```java
+public class IDE {
+    public static void open() {
+        System.out.println("開啟 IDE");
+    }
+
+    public static void close() {
+        System.out.println("關閉 IDE");
+    }
+}
+```
+
+新建微信類：
+
+```java
+public class Wechat {
+    public static void open() {
+        System.out.println("開啟微信");
+    }
+
+    public static void close() {
+        System.out.println("關閉微信");
+    }
+}
+```
+
+客戶端呼叫：
+
+```java
+public class Client {
+    @Test
+    public void test() {
+        System.out.println("上班:");
+        Browser.open();
+        IDE.open();
+        Wechat.open();
+
+        System.out.println("下班:");
+        Browser.close();
+        IDE.close();
+        Wechat.close();
+    }
+}
+```
+
+執行程式，輸出如下：
+
+```java
+上班:
+開啟瀏覽器
+開啟 IDE
+開啟微信
+下班:
+關閉瀏覽器
+關閉 IDE
+關閉微信
+```
+
+由於我們每天都要做這幾件事，所以我們可以使用外觀模式，將這幾個子系統封裝起來，提供更簡潔的介面：
+
+```java
+public class Facade {
+    public void open() {
+        Browser.open();
+        IDE.open();
+        Wechat.open();
+    }
+
+    public void close() {
+        Browser.close();
+        IDE.close();
+        Wechat.close();
+    }
+}
+```
+
+客戶端就可以簡化程式碼，只和這個外觀類打交道：
+
+```java
+public class Client {
+    @Test
+    public void test() {
+        Facade facade = new Facade();
+        System.out.println("上班:");
+        facade.open();
+
+        System.out.println("下班:");
+        facade.close();
+    }
+}
+```
+
+執行程式，輸出與之前一樣。
+
+外觀模式就是這麼簡單，它使得兩種不同的類不用直接互動，而是透過一箇中間件——也就是外觀類——間接互動。外觀類中只需要暴露簡潔的介面，隱藏內部的細節，所以說白了就是封裝的思想。
+
+外觀模式非常常用，（當然了！寫程式碼哪有不封裝的！）尤其是在第三方庫的設計中，我們應該提供儘量簡潔的介面供別人呼叫。另外，在 MVC 架構中，C 層（Controller）就可以看作是外觀類，Model 和 View 層透過 Controller 互動，減少了耦合。
+
+
+
 ### 享元模式
 
 ------
