@@ -1563,3 +1563,850 @@ public class Client {
 答案：透明方式：在 Component 中宣告所有管理子物件的方法，包括 add 、remove 等，這樣繼承自 Component 的子類都具備了 add、remove 方法。對於外界來說葉節點和枝節點是透明的，它們具備完全一致的介面。
 
 安全方式：在 Component 中不宣告 add 和 remove 等管理子物件的方法，這樣葉節點就無需實現它，只需在枝節點中實現管理子物件的方法即可。
+
+
+
+### 裝飾模式
+
+------
+
+提到裝飾，我們先來想一下生活中有哪些裝飾：
+
+* 女生的首飾：戒指、耳環、項鍊等裝飾品
+
+* 家居裝飾品：粘鉤、鏡子、壁畫、盆栽等等
+
+我們為什麼需要這些裝飾品呢？我們很容易想到是為了美，戒指、耳環、項鍊、壁畫、盆栽都是為了提高顏值或增加美觀度。但粘鉤、鏡子不一樣，它們是為了方便我們掛東西、洗漱。所以我們可以總結出裝飾品共有兩種功能：
+
+* 增強原有的特性：我們本身就是有一定顏值的，新增裝飾品提高了我們的顏值。同樣地，房屋本身就有一定的美觀度，家居裝飾提高了房屋的美觀度。
+
+* 新增新的特性：在牆上掛上粘鉤，讓牆壁有了掛東西的功能。在洗漱臺裝上鏡子，讓洗漱臺有了照鏡子的功能。
+
+並且我們發現，裝飾品並不會改變物品本身，只是起到一個錦上添花的作用。裝飾模式也一樣，它的主要作用就是：
+
+* 增強一個類原有的功能
+
+* 為一個類新增新的功能
+
+並且裝飾模式也不會改變原有的類。
+
+> 裝飾模式：動態地給一個物件增加一些額外的職責，就增加物件功能來說，裝飾模式比生成子類實現更為靈活。其別名也可以稱為包裝器，與介面卡模式的別名相同，但它們適用於不同的場合。根據翻譯的不同，裝飾模式也有人稱之為“油漆工模式”。
+
+#### 用於增強功能的裝飾模式
+
+我們用程式來模擬一下帶上裝飾品提高我們顏值的過程：
+
+新建顏值介面：
+
+```java
+public interface IBeauty {
+    int getBeautyValue();
+}
+```
+
+新建 Me 類，實現顏值介面：
+
+```java
+public class Me implements IBeauty {
+
+    @Override
+    public int getBeautyValue() {
+        return 100;
+    }
+}
+```
+
+戒指裝飾類，將 Me 包裝起來：
+
+```java
+public class RingDecorator implements IBeauty {
+    private final IBeauty me;
+
+    public RingDecorator(IBeauty me) {
+        this.me = me;
+    }
+
+    @Override
+    public int getBeautyValue() {
+        return me.getBeautyValue() + 20;
+    }
+}
+```
+
+客戶端測試：
+
+```java
+public class Client {
+    @Test
+    public void show() {
+        IBeauty me = new Me();
+        System.out.println("我原本的顏值：" + me.getBeautyValue());
+
+        IBeauty meWithRing = new RingDecorator(me);
+        System.out.println("戴上了戒指後，我的顏值：" + meWithRing.getBeautyValue());
+    }
+}
+```
+
+執行程式，輸出如下：
+
+```java
+我原本的顏值：100
+戴上了戒指後，我的顏值：120
+```
+
+這就是最簡單的增強功能的裝飾模式。以後我們可以新增更多的裝飾類，比如：
+
+耳環裝飾類：
+
+```java
+public class EarringDecorator implements IBeauty {
+    private final IBeauty me;
+
+    public EarringDecorator(IBeauty me) {
+        this.me = me;
+    }
+
+    @Override
+    public int getBeautyValue() {
+        return me.getBeautyValue() + 50;
+    }
+}
+```
+
+項鍊裝飾類：
+
+```java
+public class NecklaceDecorator implements IBeauty {
+    private final IBeauty me;
+
+    public NecklaceDecorator(IBeauty me) {
+        this.me = me;
+    }
+
+    @Override
+    public int getBeautyValue() {
+        return me.getBeautyValue() + 80;
+    }
+}
+```
+
+客戶端測試：
+
+```java
+public class Client {
+    @Test
+    public void show() {
+        IBeauty me = new Me();
+        System.out.println("我原本的顏值：" + me.getBeautyValue());
+
+        // 隨意挑選裝飾
+        IBeauty meWithNecklace = new NecklaceDecorator(me);
+        System.out.println("戴上了項鍊後，我的顏值：" + meWithNecklace.getBeautyValue());
+
+        // 多次裝飾
+        IBeauty meWithManyDecorators = new NecklaceDecorator(new RingDecorator(new EarringDecorator(me)));
+        System.out.println("戴上耳環、戒指、項鍊後，我的顏值：" + meWithManyDecorators.getBeautyValue());
+
+        // 任意搭配裝飾
+        IBeauty meWithNecklaceAndRing = new NecklaceDecorator(new RingDecorator(me));
+        System.out.println("戴上戒指、項鍊後，我的顏值：" + meWithNecklaceAndRing.getBeautyValue());
+    }
+}
+```
+
+執行程式，輸出如下：
+
+```java
+我原本的顏值：100
+戴上了項鍊後，我的顏值：180
+戴上耳環、戒指、項鍊後，我的顏值：250
+戴上戒指、項鍊後，我的顏值：200
+```
+
+可以看到，裝飾器也實現了 IBeauty 介面，並且沒有新增新的方法，也就是說這裡的裝飾器**僅用於增強功能，並不會改變 Me 原有的功能**，這種裝飾模式稱之為透明裝飾模式，由於沒有改變介面，也沒有新增方法，所以透明裝飾模式可以無限裝飾。
+
+裝飾模式是繼承的一種替代方案。本例如果不使用裝飾模式，而是改用繼承實現的話，戴著戒指的 Me 需要派生一個子類、戴著項鍊的 Me 需要派生一個子類、戴著耳環的 Me 需要派生一個子類、戴著戒指 + 項鍊的需要派生一個子類...各種各樣的排列組合會造成類爆炸。而採用了裝飾模式就只需要為每個裝飾品生成一個裝飾類即可，所以說**就增加物件功能來說，裝飾模式比生成子類實現更為靈活**。
+
+#### 用於新增功能的裝飾模式
+
+我們用程式來模擬一下房屋裝飾粘鉤後，新增了掛東西功能的過程：
+
+新建房屋介面：
+
+```java
+public interface IHouse {
+    void live();
+}
+```
+
+房屋類：
+
+```java
+public class House implements IHouse{
+
+    @Override
+    public void live() {
+        System.out.println("房屋原有的功能：居住功能");
+    }
+}
+```
+
+新建粘鉤裝飾器介面，繼承自房屋介面：
+
+```java
+public interface IStickyHookHouse extends IHouse{
+    void hangThings();
+}
+```
+
+粘鉤裝飾類：
+
+```java
+public class StickyHookDecorator implements IStickyHookHouse {
+    private final IHouse house;
+
+    public StickyHookDecorator(IHouse house) {
+        this.house = house;
+    }
+
+    @Override
+    public void live() {
+        house.live();
+    }
+
+    @Override
+    public void hangThings() {
+        System.out.println("有了粘鉤後，新增了掛東西功能");
+    }
+}
+```
+
+客戶端測試：
+
+```java
+public class Client {
+    @Test
+    public void show() {
+        IHouse house = new House();
+        house.live();
+
+        IStickyHookHouse stickyHookHouse = new StickyHookDecorator(house);
+        stickyHookHouse.live();
+        stickyHookHouse.hangThings();
+    }
+}
+```
+
+執行程式，顯示如下：
+
+```java
+房屋原有的功能：居住功能
+房屋原有的功能：居住功能
+有了粘鉤後，新增了掛東西功能
+```
+
+這就是用於新增功能的裝飾模式。我們在介面中新增了方法：hangThings，然後在裝飾器中將 House 類包裝起來，之前 House 中的方法仍然呼叫 house 去執行，也就是說我們並沒有修改原有的功能，只是擴充套件了新的功能，這種模式在裝飾模式中稱之為半透明裝飾模式。
+
+為什麼叫半透明呢？由於新的介面 IStickyHookHouse 擁有之前 IHouse 不具有的方法，所以我們如果要使用裝飾器中新增的功能，就不得不區別對待裝飾前的物件和裝飾後的物件。也就是說客戶端要使用新方法，必須知道具體的裝飾類 StickyHookDecorator，所以這個裝飾類對客戶端來說是可見的、不透明的。而被裝飾者不一定要是 House，它可以是實現了 IHouse 介面的任意物件，所以被裝飾者對客戶端是不可見的、透明的。由於一半透明，一半不透明，所以稱之為半透明裝飾模式。
+
+我們可以新增更多的裝飾器：
+
+新建鏡子裝飾器的介面，繼承自房屋介面：
+
+```java
+public interface IMirrorHouse extends IHouse {
+    void lookMirror();
+}
+```
+
+鏡子裝飾類：
+
+```java
+public class MirrorDecorator implements IMirrorHouse{
+    private final IHouse house;
+
+    public MirrorDecorator(IHouse house) {
+        this.house = house;
+    }
+
+    @Override
+    public void live() {
+        house.live();
+    }
+
+    @Override
+    public void lookMirror() {
+        System.out.println("有了鏡子後，新增了照鏡子功能");
+    }
+}
+```
+
+客戶端測試：
+
+```java
+public class Client {
+    @Test
+    public void show() {
+        IHouse house = new House();
+        house.live();
+
+        IMirrorHouse mirrorHouse = new MirrorDecorator(house);
+        mirrorHouse.live();
+        mirrorHouse.lookMirror();
+    }
+}
+```
+
+執行程式，輸出如下：
+
+```java
+房屋原有的功能：居住功能
+房屋原有的功能：居住功能
+有了鏡子後，新增了照鏡子功能
+```
+
+現在我們仿照透明裝飾模式的寫法，同時新增粘鉤和鏡子裝飾試一試：
+
+```java
+public class Client {
+    @Test
+    public void show() {
+        IHouse house = new House();
+        house.live();
+
+        IStickyHookHouse stickyHookHouse = new StickyHookDecorator(house);
+        IMirrorHouse houseWithStickyHookMirror = new MirrorDecorator(stickyHookHouse);
+        houseWithStickyHookMirror.live();
+        houseWithStickyHookMirror.hangThings(); // 這裡會報錯，找不到 hangThings 方法
+        houseWithStickyHookMirror.lookMirror();
+    }
+}
+```
+
+我們會發現，第二次裝飾時，無法獲得上一次裝飾新增的方法。原因很明顯，當我們用 IMirrorHouse 裝飾器後，介面變為了 IMirrorHouse，這個介面中並沒有 hangThings 方法。
+
+那麼我們能否讓 IMirrorHouse 繼承自 IStickyHookHouse，以實現新增兩個功能呢？可以，但那樣做的話兩個裝飾類之間有了依賴關係，那就不是裝飾模式了。裝飾類不應該存在依賴關係，而應該在原本的類上進行裝飾。這就意味著，**半透明裝飾模式中，我們無法多次裝飾**。
+
+有的同學會問了，既增強了功能，又添加了新功能的裝飾模式叫什麼呢？
+
+—— 舉一反三，肯定是叫全不透明裝飾模式！
+
+—— 並不是！只要添加了新功能的裝飾模式都稱之為半透明裝飾模式，他們都具有不可以多次裝飾的特點。仔細理解上文半透明名稱的由來就知道了，“透明”指的是我們無需知道被裝飾者具體的類，既增強了功能，又添加了新功能的裝飾模式仍然具有半透明特性。
+
+看了這兩個簡單的例子，是不是發現裝飾模式很簡單呢？恭喜你學會了 1 + 1 = 2，現在你已經掌握了算數的基本思想，接下來我們來做一道微積分題練習一下。
+
+#### I/O中的裝飾模式
+
+I/O 指的是 Input/Output，即輸入、輸出。我們以 Input 為例。先在 `src` 資料夾下新建一個檔案 readme.text，隨便寫點文字：
+
+```java
+禁止套娃
+禁止禁止套娃
+禁止禁止禁止套娃
+```
+
+然後用 Java 的 InputStream 讀取，程式碼一般長這樣：
+
+```java
+public void io() throws IOException {
+    InputStream in = new BufferedInputStream(new FileInputStream("src/readme.txt"));
+    byte[] buffer = new byte[1024];
+    while (in.read(buffer) != -1) {
+        System.out.println(new String(buffer));
+    }
+    in.close();
+}
+```
+
+這樣寫有一個問題，如果讀取過程中出現了 IO 異常，InputStream 就不能正確的關閉，所以我們要用 `try...finally`來保證 InputStream 正確關閉：
+
+```java
+public void io() throws IOException {
+    InputStream in = null;
+    try {
+        in = new BufferedInputStream(new FileInputStream("src/readme.txt"));
+        byte[] buffer = new byte[1024];
+        while (in.read(buffer) != -1) {
+            System.out.println(new String(buffer));
+        }
+    } finally {
+        if (in != null) {
+            in.close();
+        }
+    }
+}
+```
+
+這種寫法實在是太醜了，而 IO 操作又必須這麼寫，顯然 Java 也意識到了這個問題，所以 Java 7 中引入了 `try(resource)`語法糖，IO 的程式碼就可以簡化如下：
+
+```java
+public void io() throws IOException {
+    try (InputStream in = new BufferedInputStream(new FileInputStream("src/readme.txt"))) {
+        byte[] buffer = new byte[1024];
+        while (in.read(buffer) != -1) {
+            System.out.println(new String(buffer));
+        }
+    }
+}
+```
+
+這種寫法和上一種邏輯是一樣的，執行程式，顯示如下：
+
+```java
+禁止套娃
+禁止禁止套娃
+禁止禁止禁止套娃
+```
+
+觀察獲取 InputStream 這句程式碼：
+
+```java
+InputStream in = new BufferedInputStream(new FileInputStream("src/readme.txt"));
+```
+
+事實上，檢視 I/O 的原始碼可知，Java I/O 的設計框架便是使用的裝飾者模式，InputStream 的繼承關係如下：
+
+![](.\img\qiHSbE-image.png)
+
+其中，InputStream 是一個抽象類，對應上文例子中的 IHouse，其中最重要的方法是 read 方法，這是一個抽象方法：
+
+```java
+public abstract class InputStream implements Closeable {
+    
+    public abstract int read() throws IOException;
+    
+    // ...
+}
+```
+
+這個方法會讀取輸入流的下一個位元組，並返回位元組表示的 int 值（0~255），返回 -1 表示已讀到末尾。由於它是抽象方法，所以具體的邏輯交由子類實現。
+
+上圖中，左邊的三個類 FileInputStream、ByteArrayInputStream、ServletInputStream 是 InputStream 的三個子類，對應上文例子中實現了 IHouse 介面的 House。
+
+右下角的三個類 BufferedInputStream、DataInputStream、CheckedInputStream 是三個具體的裝飾者類，他們都為 InputStream 增強了原有功能或添加了新功能。
+
+FilterInputStream 是所有裝飾類的父類，它沒有實現具體的功能，僅用來包裝了一下 InputStream：
+
+```java
+public class FilterInputStream extends InputStream {
+    protected volatile InputStream in;
+    
+    protected FilterInputStream(InputStream in) {
+        this.in = in;
+    }
+
+    public int read() throws IOException {
+        return in.read();
+    }
+    
+    //...
+}
+```
+
+我們以 BufferedInputStream 為例。原有的 InputStream 讀取檔案時，是一個位元組一個位元組的讀取的，這種方式的執行效率並不高，所以我們可以設立一個緩衝區，先將內容讀取到緩衝區中，緩衝區讀滿後，將內容從緩衝區中取出來，這樣就變成了一段一段的讀取，用記憶體換取效率。BufferedInputStream 就是用來做這個的。它繼承自 FilterInputStream：
+
+```java
+public class BufferedInputStream extends FilterInputStream {
+    private static final int DEFAULT_BUFFER_SIZE = 8192;
+    protected volatile byte buf[];
+
+    public BufferedInputStream(InputStream in) {
+        this(in, DEFAULT_BUFFER_SIZE);
+    }
+
+    public BufferedInputStream(InputStream in, int size) {
+        super(in);
+        if (size <= 0) {
+            throw new IllegalArgumentException("Buffer size <= 0");
+        }
+        buf = new byte[size];
+    }
+    
+    //...
+}
+```
+
+我們先來看它的構造方法，在構造方法中，新建了一個 byte[] 作為緩衝區，從原始碼中我們看到，Java 預設設定的緩衝區大小為 8192 byte，也就是 8 KB。
+
+然後我們來檢視 read 方法：
+
+```java
+public class BufferedInputStream extends FilterInputStream {
+    //...
+
+    public synchronized int read() throws IOException {
+        if (pos >= count) {
+            fill();
+            if (pos >= count)
+                return -1;
+        }
+        return getBufIfOpen()[pos++] & 0xff;
+    }
+
+    private void fill() throws IOException {
+        // 往緩衝區內填充讀取內容的過程
+        //...
+    }
+}
+```
+
+在 read 方法中，呼叫了 fill 方法，fill 方法的作用就是往緩衝區中填充讀取的內容。這樣就實現了增強原有的功能。
+
+在原始碼中我們發現，BufferedInputStream 沒有新增 InputStream 中沒有的方法，所以 BufferedInputStream 使用的是透明的裝飾模式。
+
+DataInputStream 用於更加方便的讀取 int、double 等內容，觀察 DataInputStream 的原始碼可以發現，DataInputStream 中新增了 readInt、readLong 等方法，所以 DataInputStream 使用的是半透明裝飾模式。
+
+理解了 InputStream 後，再看一下 OutputStream 的繼承關係，相信大家一眼就能看出各個類的作用了：
+
+![](.\img\qiHSbE-image.png)
+
+這就是裝飾模式，注意不要和介面卡模式混淆了。兩者在使用時都是包裝一個類，但兩者的區別其實也很明顯：
+
+* 純粹的介面卡模式僅用於改變介面，不改變其功能，部分情況下我們需要改變一點功能以適配新介面。但使用介面卡模式時，介面一定會有一個回爐重造的過程。
+
+* 裝飾模式不改變原有的介面，僅用於增強原有功能或新增新功能，強調的是錦上添花。
+
+掌握了裝飾者模式之後，理解 Java I/O 的框架設計就非常容易了。但對於不理解裝飾模式的人來說，各種各樣相似的 InputStream 非常容易讓開發者感到困惑。這一點正是裝飾模式的缺點：**容易造成程式中有大量相似的類**。雖然這更像是開發者的缺點，我們應該做的是提高自己的技術，掌握了這個設計模式之後它就是我們的一把利器。現在我們再看到 I/O 不同的 InputStream 裝飾類，只需要關注它增強了什麼功能或添加了什麼功能即可。
+
+
+
+### 享元模式
+
+------
+
+享元模式體現的是程式可複用的特點，為了節約寶貴的記憶體，程式應該儘可能地複用，就像《極限程式設計》作者 Kent 在書裡說到的那樣：Don't repeat yourself. 簡單來說享元模式就是共享物件，提高複用性，官方的定義倒是顯得文縐縐的：
+
+> 享元模式：運用共享技術有效地支援大量細粒度物件的複用。系統只使用少量的物件，而這些物件都很相似，狀態變化很小，可以實現物件的多次複用。由於享元模式要求能夠共享的物件必須是細粒度物件，因此它又稱為輕量級模式。
+
+有個細節值得注意：有些物件本身不一樣，但透過一點點變化後就可以複用，我們程式設計時可能稍不注意就會忘記複用這些物件。比如說偉大的超級瑪麗，誰能想到草和雲更改一下顏色就可以實現複用呢？還有裡面的三種烏龜，換一個顏色、加一個裝飾就變成了不同的怪。
+
+在超級瑪麗中，這樣的細節還有很多，正是這些精湛的複用使得這一款紅遍全球的遊戲僅有 40KB 大小。正是印證了那句名言：神在細節之中。
+
+
+
+### 代理模式
+
+------
+
+現在我們有一個`人`類，他整天就只負責吃飯、睡覺：
+
+`人`類的介面
+
+```java
+public interface IPerson {
+    void eat();
+    void sleep();
+}
+```
+
+`人`類：
+
+```java
+public class Person implements IPerson{
+
+    @Override
+    public void eat() {
+        System.out.println("我在吃飯");
+    }
+
+    @Override
+    public void sleep() {
+        System.out.println("我在睡覺");
+    }
+}
+```
+
+客戶端測試：
+
+```java
+public class Client {
+    @Test
+    public void test() {
+        Person person = new Person();
+        person.eat();
+        person.sleep();
+    }
+}
+```
+
+執行程式，輸出如下：
+
+```java
+我在吃飯
+我在睡覺
+```
+
+我們可以把這個類包裝到另一個類中，實現完全一樣的行為：
+
+```java
+public class PersonProxy implements IPerson {
+
+    private final Person person;
+
+    public PersonProxy(Person person) {
+        this.person = person;
+    }
+
+    @Override
+    public void eat() {
+        person.eat();
+    }
+
+    @Override
+    public void sleep() {
+        person.sleep();
+    }
+}
+```
+
+將客戶端修改為呼叫這個新的類：
+
+```java
+public class Client {
+    @Test
+    public void test() {
+        Person person = new Person();
+        PersonProxy proxy = new PersonProxy(person);
+        proxy.eat();
+        proxy.sleep();
+    }
+}
+```
+
+執行程式，輸出如下：
+
+```java
+我在吃飯
+我在睡覺
+```
+
+這就是代理模式。
+
+筆者力圖用最簡潔的程式碼講解此模式，只要理解了上述這個簡單的例子，你就知道代理模式是怎麼一回事了。我們在客戶端和 Person 類之間新增了一箇中間件 PersonProxy，這個類就叫做代理類，他實現了和 Person 類一模一樣的行為。
+
+> 代理模式：給某一個物件提供一個代理，並由代理物件控制對原物件的引用。
+
+現在這個代理類還看不出任何意義，我們來模擬一下工作中的需求。在實際工作中，我們可能會遇到這樣的需求：在網路請求前後，分別列印將要傳送的資料和接收到資料作為日誌資訊。此時我們就可以新建一個網路請求的代理類，讓它代為處理網路請求，並在代理類中列印這些日誌資訊。
+
+新建網路請求介面：
+
+```java
+public interface IHttp {
+    void request(String sendData);
+
+    void onSuccess(String receivedData);
+}
+```
+
+新建 Http 請求工具類：
+
+```java
+public class HttpUtil implements IHttp {
+    @Override
+    public void request(String sendData) {
+        System.out.println("網路請求中...");
+    }
+
+    @Override
+    public void onSuccess(String receivedData) {
+        System.out.println("網路請求完成。");
+    }
+}
+```
+
+新建 Http 代理類：
+
+```java
+public class HttpProxy implements IHttp {
+    private final HttpUtil httpUtil;
+
+    public HttpProxy(HttpUtil httpUtil) {
+        this.httpUtil = httpUtil;
+    }
+
+    @Override
+    public void request(String sendData) {
+        httpUtil.request(sendData);
+    }
+
+    @Override
+    public void onSuccess(String receivedData) {
+        httpUtil.onSuccess(receivedData);
+    }
+}
+```
+
+到這裡，和我們上述吃飯睡覺的程式碼是一模一樣的，現在我們在 HttpProxy 中新增列印日誌資訊：
+
+```java
+public class HttpProxy implements IHttp {
+    private final HttpUtil httpUtil;
+
+    public HttpProxy(HttpUtil httpUtil) {
+        this.httpUtil = httpUtil;
+    }
+
+    @Override
+    public void request(String sendData) {
+        System.out.println("傳送資料:" + sendData);
+        httpUtil.request(sendData);
+    }
+
+    @Override
+    public void onSuccess(String receivedData) {
+        System.out.println("收到資料:" + receivedData);
+        httpUtil.onSuccess(receivedData);
+    }
+}
+```
+
+客戶端驗證：
+
+```java
+public class Client {
+    @Test
+    public void test() {
+        HttpUtil httpUtil = new HttpUtil();
+        HttpProxy proxy = new HttpProxy(httpUtil);
+        proxy.request("request data");
+        proxy.onSuccess("received result");
+    }
+}
+```
+
+執行程式，輸出如下：
+
+```java
+傳送資料:request data
+網路請求中...
+收到資料:received result
+網路請求完成。
+```
+
+這就是代理模式的一個應用，除了列印日誌，它還可以用來做許可權管理。讀者看到這裡可能已經發現了，這個代理類看起來和裝飾模式的 FilterInputStream 一模一樣，但兩者的目的不同，裝飾模式是為了增強功能或新增功能，代理模式主要是為了**加以控制**。
+
+#### 動態代理
+
+上例中的代理被稱之為靜態代理，動態代理與靜態代理的原理一模一樣，只是換了一種寫法。使用動態代理，需要把一個類傳入，然後根據它正在呼叫的方法名判斷是否需要加以控制。用偽程式碼表示如下：
+
+```java
+public class HttpProxy {
+    private final HttpUtil httpUtil;
+
+    public HttpProxy(HttpUtil httpUtil) {
+        this.httpUtil = httpUtil;
+    }
+
+    // 假設呼叫 httpUtil 的任意方法時，都要透過這個方法間接呼叫, methodName 表示方法名，args 表示方法中傳入的引數
+    public visit(String methodName, Object[] args) {
+        if (methodName.equals("request")) {
+            // 如果方法名是 request，列印日誌，並呼叫 request 方法，args 的第一個值就是傳入的引數
+            System.out.println("傳送資料:" + args[0]);
+            httpUtil.request(args[0].toString());
+        } else if (methodName.equals("onSuccess")) {
+            // 如果方法名是 onSuccess，列印日誌，並呼叫 onSuccess 方法，args 的第一個值就是傳入的引數
+            System.out.println("收到資料:" + args[0]);
+            httpUtil.onSuccess(args[0].toString());
+        }
+    }
+}
+```
+
+虛擬碼看起來還是很簡單的，實現起來唯一的難點就是**怎麼讓 httpUtil 呼叫任意方法時，都透過一個方法間接呼叫**。這裡需要用到反射技術，不瞭解反射技術也沒有關係，不妨把它記做固定的寫法。實際的動態代理類程式碼如下：
+
+```java
+public class HttpProxy implements InvocationHandler {
+    private HttpUtil httpUtil;
+
+    public IHttp getInstance(HttpUtil httpUtil) {
+        this.httpUtil = httpUtil;
+        return (IHttp) Proxy.newProxyInstance(httpUtil.getClass().getClassLoader(), httpUtil.getClass().getInterfaces(), this);
+    }
+
+    // 呼叫 httpUtil 的任意方法時，都要透過這個方法呼叫
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        Object result = null;
+        if (method.getName().equals("request")) {
+            // 如果方法名是 request，列印日誌，並呼叫 request 方法
+            System.out.println("傳送資料:" + args[0]);
+            result = method.invoke(httpUtil, args);
+        } else if (method.getName().equals("onSuccess")) {
+            // 如果方法名是 onSuccess，列印日誌，並呼叫 onSuccess 方法
+            System.out.println("收到資料:" + args[0]);
+            result = method.invoke(httpUtil, args);
+        }
+        return result;
+    }
+}
+```
+
+先看 getInstance 方法，Proxy.newProxyInstance 方法是 Java 系統提供的方法，專門用於動態代理。其中傳入的第一個引數是被代理的類的 ClassLoader，第二個引數是被代理類的 Interfaces，這兩個引數都是 Object 中的，每個類都有，這裡就是固定寫法。我們只要知道系統需要這兩個引數才能讓我們實現我們的目的：**呼叫被代理類的任意方法時，都透過一個方法間接呼叫**。現在我們給系統提供了這兩個引數，系統就會在第三個引數中幫我們實現這個目的。
+
+第三個引數是 InvocationHandler 介面，這個介面中只有一個方法：
+
+```java
+public Object invoke(Object proxy, Method method, Object[] args) throws Throwable;
+```
+
+那麼不用猜就知道，現在我們呼叫被代理類 httpUtil 的任意方法時，都會透過這個 invoke 方法呼叫了。invoke 方法中，第一個引數我們暫時用不上，第二個引數 method 就是呼叫的方法，使用 method.getName() 可以獲取到方法名，第三個引數是呼叫 method 方法需要傳入的引數。本例中無論 request 還是 onSuccess 都只有一個 String 型別的引數，對應到這裡就是 args[0]。返回的 Object 是 method 方法的返回值，本例中都是無返回值的。
+
+我們在 invoke 方法中判斷了當前呼叫方法的方法名，如果現在呼叫的方法是 request，那麼列印請求引數，並使用這一行程式碼繼續執行當前方法：
+
+```java
+result = method.invoke(httpUtil, args);
+```
+
+這就是反射呼叫函式的寫法，如果不瞭解可以記做固定寫法。雖然這個函式沒有返回值，但我們還是將 result 返回，這是標準做法。
+
+如果現在呼叫的方法是 onSuccess，那麼列印接收到的資料，並反射繼續執行當前方法。
+
+修改客戶端驗證一下：
+
+```java
+public class Client {
+    @Test
+    public void test() {
+        HttpUtil httpUtil = new HttpUtil();
+        IHttp proxy = new HttpProxy().getInstance(httpUtil);
+        proxy.request("request data");
+        proxy.onSuccess("received result");
+    }
+}
+```
+
+執行程式，輸出與之前一樣：
+
+```java
+傳送資料:request data
+網路請求中...
+收到資料:received result
+網路請求完成。
+```
+
+動態代理本質上與靜態代理沒有區別，它的好處是節省程式碼量。比如被代理類有 20 個方法，而我們只需要控制其中的兩個方法，就可以用動態代理透過方法名對被代理類進行動態的控制，而如果用靜態方法，我們就需要將另外的 18 個方法也寫出來，非常繁瑣。這就是動態代理的優勢所在。
+
+
+
+### 小結
+
+-------
+
+* 介面卡模式：用於有相關性但不相容的介面
+
+* 橋接模式：用於同等級的介面互相組合
+
+* 組合模式：用於整體與部分的結構
+
+* 外觀模式：體現封裝的思想
+
+* 享元模式：體現面向物件的可複用性
+
+* 代理模式：主要用於對某個物件加以控制
+
+
+
+## 行為型模式
+
+------
