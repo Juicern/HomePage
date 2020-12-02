@@ -131,6 +131,8 @@ repo地址：[钉钉界面简单调用](https://github.com/Ricky-Chu/WebApiTest)
 
 ------
 
+bit_length: 获取当前数字的用二进制表示的长度
+
 ### TypeScript
 
 ------
@@ -174,6 +176,12 @@ select top 1 queston_id from survey_log
 
 下述为示例
 
+```mssql
+
+```
+
+
+
 ```MSSQL
 case sex
 when '1' then '男'
@@ -181,7 +189,13 @@ when '2' then '女'
 else ‘其他’ end
 ```
 
+#### where
 
+约束声明，使用Where来约束来自数据库的数据，where是在结果返回之前起作用的，且where中不能使用聚合函数
+
+#### having
+
+过滤声明，是在查询返回结果集以后对查询结果进行的过滤操作，在having中可以使用聚合函数
 
 ### Mermaid
 
