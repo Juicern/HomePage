@@ -213,6 +213,116 @@ else ‘其他’ end
 
 * Anchor：根据form来进行对齐（注意是根据form，而不是根据父页面）
 
+#### 跨窗体操作控件
+
+使用委托来实现跨窗体调用控件
+
+效果描述：有两个窗体，FORM1（一个名为“打开form2”的button控件）和FORM2（一个名为“改变form1颜色“的button控件）。启动时，FORM1中点击button控件“打开form2””使FORM2显示出来。点击FORM2中的“改变form1颜色”后，Form1中颜色改变。
+
+1. 在Form2里面
+
+   首先声明一个委托和一个委托实例
+
+   * Form2类外：
+
+     ```c#
+     public delegate void ChangeFormColor(bool topmost);
+     ```
+
+   * Form2类里：
+
+     ```c#
+     public event ChangeFormColor ChangeColor;
+     ```
+
+   Form2的按钮事件中调用委托：
+
+   ```c#
+   private void button1_Click(object sender, EventArgs e)
+   {
+       ChangeColor(true);//执行委托实例
+   }
+   ```
+
+2. 在Form2里面：
+
+   button控件"打开form2"的click事件中有下列代码：
+
+   ```c#
+   Form2 f = new Form2();
+   f.ChangeColor += new ChangeFormColor(f_ChangeColor);
+   f.Show();
+   ```
+
+   f.ChangeColor += new ChangeFormColor(f_ChangeColor);
+   这句最关键，你输入到+=之后，按两下Tab，他会自动给你生成回调函数，如下：
+
+   ```c#
+   void f_ChangeColor(bool topmost)
+   {
+       this.BackColor = Color.LightBlue;
+       this.Text = "改变成功";
+   }
+   ```
+
+3. 完整代码
+
+   Form1：
+
+   ```c#
+   using System;
+   using System.Drawing;
+   using System.Windows.Forms;
+    
+   namespace 跨窗体调用控件
+   {
+       public partial class Form1 : Form
+       {
+           public Form1()
+           {
+               InitializeComponent();
+           }
+           private void button1_Click(object sender, EventArgs e)
+           {
+               Form2 f = new Form2();
+               f.ChangeColor += new ChangeFormColor(f_ChangeColor);
+               f.Show();
+           }
+           void f_ChangeColor(bool topmost)
+           {
+               this.BackColor = Color.LightBlue;
+               this.Text = "改变成功";
+           }
+       }
+   }
+   ```
+
+   Form2:
+
+   ```c#
+   using System;
+   using System.Windows.Forms;
+    
+   namespace 跨窗体调用控件
+   {
+       public delegate void ChangeFormColor(bool topmost);
+       public partial class Form2 : Form
+       {
+           public Form2()
+           {
+               InitializeComponent();
+           }
+           public event ChangeFormColor ChangeColor;
+           private void button1_Click(object sender, EventArgs e)
+           {
+               ChangeColor(true);//执行委托实例
+           }
+       }
+   }
+   ```
+
+   
+
 ### .Net
 
 ------

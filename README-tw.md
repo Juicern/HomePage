@@ -68,11 +68,7 @@ repo地址：[釘釘介面簡單呼叫](https://github.com/Ricky-Chu/WebApiTest)
 
 ------
 
-### [設計模式](./DesignPatterns-tw.md)
-
-------
-
-
+### [設計模式](./DesignPatterns-cn.md)
 
 ### 計算機網路
 
@@ -135,6 +131,8 @@ repo地址：[釘釘介面簡單呼叫](https://github.com/Ricky-Chu/WebApiTest)
 
 ------
 
+bit_length: 獲取當前數字的用二進位制表示的長度
+
 ### TypeScript
 
 ------
@@ -155,7 +153,7 @@ repo地址：[釘釘介面簡單呼叫](https://github.com/Ricky-Chu/WebApiTest)
 
 下圖分別展示了left join, right join, inner join, outer join相關的7種用法
 
-![sql-join](./img/study/program%20language%20learning/sql/sql-join.png)
+![sql-join](README-tw.assets/sql-join.png)
 
 > 注意：left join與left outer join, right join 和 right outer join，沒有任何差別 
 
@@ -178,6 +176,12 @@ select top 1 queston_id from survey_log
 
 下述為示例
 
+```mssql
+
+```
+
+
+
 ```MSSQL
 case sex
 when '1' then '男'
@@ -185,7 +189,13 @@ when '2' then '女'
 else ‘其他’ end
 ```
 
+#### where
 
+約束宣告，使用Where來約束來自資料庫的資料，where是在結果返回之前起作用的，且where中不能使用聚合函式
+
+#### having
+
+過濾宣告，是在查詢返回結果集以後對查詢結果進行的過濾操作，在having中可以使用聚合函式
 
 ### Mermaid
 
@@ -202,6 +212,116 @@ else ‘其他’ end
 #### 屬性
 
 * Anchor：根據form來進行對齊（注意是根據form，而不是根據父頁面）
+
+#### 跨窗體操作控制元件
+
+使用委託來實現跨窗體呼叫控制元件
+
+效果描述：有兩個窗體，FORM1（一個名為“開啟form2”的button控制元件）和FORM2（一個名為“改變form1顏色“的button控制元件）。啟動時，FORM1中點選button控制元件“開啟form2””使FORM2顯示出來。點選FORM2中的“改變form1顏色”後，Form1中顏色改變。
+
+1. 在Form2裡面
+
+   首先宣告一個委託和一個委託例項
+
+   * Form2類外：
+
+     ```c#
+     public delegate void ChangeFormColor(bool topmost);
+     ```
+
+   * Form2類裡：
+
+     ```c#
+     public event ChangeFormColor ChangeColor;
+     ```
+
+   Form2的按鈕事件中呼叫委託：
+
+   ```c#
+   private void button1_Click(object sender, EventArgs e)
+   {
+       ChangeColor(true);//執行委託例項
+   }
+   ```
+
+2. 在Form2裡面：
+
+   button控制元件"開啟form2"的click事件中有下列程式碼：
+
+   ```c#
+   Form2 f = new Form2();
+   f.ChangeColor += new ChangeFormColor(f_ChangeColor);
+   f.Show();
+   ```
+
+   f.ChangeColor += new ChangeFormColor(f_ChangeColor);
+   這句最關鍵，你輸入到+=之後，按兩下Tab，他會自動給你生成回撥函式，如下：
+
+   ```c#
+   void f_ChangeColor(bool topmost)
+   {
+       this.BackColor = Color.LightBlue;
+       this.Text = "改變成功";
+   }
+   ```
+
+3. 完整程式碼
+
+   Form1：
+
+   ```c#
+   using System;
+   using System.Drawing;
+   using System.Windows.Forms;
+    
+   namespace 跨窗體呼叫控制元件
+   {
+       public partial class Form1 : Form
+       {
+           public Form1()
+           {
+               InitializeComponent();
+           }
+           private void button1_Click(object sender, EventArgs e)
+           {
+               Form2 f = new Form2();
+               f.ChangeColor += new ChangeFormColor(f_ChangeColor);
+               f.Show();
+           }
+           void f_ChangeColor(bool topmost)
+           {
+               this.BackColor = Color.LightBlue;
+               this.Text = "改變成功";
+           }
+       }
+   }
+   ```
+
+   Form2:
+
+   ```c#
+   using System;
+   using System.Windows.Forms;
+    
+   namespace 跨窗體呼叫控制元件
+   {
+       public delegate void ChangeFormColor(bool topmost);
+       public partial class Form2 : Form
+       {
+           public Form2()
+           {
+               InitializeComponent();
+           }
+           public event ChangeFormColor ChangeColor;
+           private void button1_Click(object sender, EventArgs e)
+           {
+               ChangeColor(true);//執行委託例項
+           }
+       }
+   }
+   ```
+
+   
 
 ### .Net
 
@@ -238,7 +358,7 @@ else ‘其他’ end
 ```
 <Compile Include="Form1.cs">
 	<SubType>Form</SubType>
-</Compile>  
+</Compile>
 ```
 
 
