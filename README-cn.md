@@ -115,6 +115,39 @@ repo地址：[钉钉界面简单调用](https://github.com/Ricky-Chu/WebApiTest)
 
 ------
 
+### GoLang
+
+------
+
+当标识符以一个大写字符出头，代表public；当以一个小写字符出头，代表protected
+
+`defer`:延迟执行，按defer的顺序倒序执行
+
+```go
+package main
+
+import "fmt"
+
+func hello() {
+	fmt.Print("hello ")
+}
+
+func world() {
+	fmt.Println("world")
+}
+
+func main() {
+	defer world()
+	hello()
+}
+```
+
+string在go中不是一个对象，传入的时候按照形参传入。
+
+
+
+
+
 ### JavaScript
 
 ------
@@ -175,12 +208,6 @@ select top 1 queston_id from survey_log
 #### case 
 
 下述为示例
-
-```mssql
-
-```
-
-
 
 ```MSSQL
 case sex

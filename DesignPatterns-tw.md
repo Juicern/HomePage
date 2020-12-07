@@ -1147,7 +1147,7 @@ public void drawTest() {
 
 考慮這樣一個實際應用：設計一個公司的人員分佈結構，結構如下圖所示。
 
-![](.\img\odwCrq-image.png)
+![](DesignPatterns-tw.assets/odwCrq-image.png)
 
 我們注意到人員結構中有兩種結構，一是管理者，如老闆，PM，CFO，CTO，二是職員。其中有的管理者不僅僅要管理職員，還會管理其他的管理者。這就是一個典型的整體與部分的結構。
 
@@ -1967,7 +1967,7 @@ InputStream in = new BufferedInputStream(new FileInputStream("src/readme.txt"));
 
 事實上，檢視 I/O 的原始碼可知，Java I/O 的設計框架便是使用的裝飾者模式，InputStream 的繼承關係如下：
 
-![](.\img\qiHSbE-image.png)
+![](DesignPatterns-tw.assets/qiHSbE-image.png)
 
 其中，InputStream 是一個抽象類，對應上文例子中的 IHouse，其中最重要的方法是 read 方法，這是一個抽象方法：
 
@@ -2059,7 +2059,7 @@ DataInputStream 用於更加方便的讀取 int、double 等內容，觀察 Data
 
 理解了 InputStream 後，再看一下 OutputStream 的繼承關係，相信大家一眼就能看出各個類的作用了：
 
-![](.\img\qiHSbE-image.png)
+![](DesignPatterns-tw.assets/qiHSbE-image.png)
 
 這就是裝飾模式，注意不要和介面卡模式混淆了。兩者在使用時都是包裝一個類，但兩者的區別其實也很明顯：
 
@@ -2552,3 +2552,1391 @@ public class Client {
 ## 行為型模式
 
 ------
+
+### 責任鏈模式
+
+------
+
+我們每個人在工作中都承擔著一定的責任，比如程式設計師承擔著開發新功能、修改 bug 的責任，運營人員承擔著宣傳的責任、HR 承擔著招聘新人的責任。我們每個人的責任與這個責任鏈有什麼關係嗎？
+
+——答案是並沒有太大關係。
+
+但也不是完全沒有關係，主要是因為每個人在不同崗位上的責任是分散的，分散的責任組合在一起更像是一張網，無法組成一條鏈。
+
+同一個崗位上的責任，就可以組成一條鏈。
+
+舉個切身的例子，比如：普通的程式設計師可以解決中等難度的 bug，優秀程式設計師可以解決困難的 bug，而菜鳥程式設計師只能解決簡單的 bug。為了將其量化，我們用一個數字來表示 bug 的難度，`(0, 20]` 表示簡單，`(20,50]` 表示中等， `(50,100]` 表示困難，我們來模擬一個 bug 解決的流程。
+
+#### “解決bug”程式 1.0
+
+新建一個bug類：
+
+```java
+public class Bug {
+    // bug 的難度值
+    int value;
+
+    public Bug(int value) {
+        this.value = value;
+    }
+}
+```
+
+新建一個程式設計師類：
+
+```java
+public class Programmer {
+    // 程式設計師型別：菜鳥、普通、優秀
+    public String type;
+
+    public Programmer(String type) {
+        this.type = type;
+    }
+
+    public void solve(Bug bug) {
+        System.out.println(type + "程式設計師解決了一個難度為 " + bug.value + " 的 bug");
+    }
+}
+```
+
+客戶端：
+
+```java
+import org.junit.Test;
+
+public class Client {
+    @Test
+    public void test() {
+        Programmer newbie = new Programmer("菜鳥");
+        Programmer normal = new Programmer("普通");
+        Programmer good = new Programmer("優秀");
+
+        Bug easy = new Bug(20);
+        Bug middle = new Bug(50);
+        Bug hard = new Bug(100);
+
+        // 依次嘗試解決 bug
+        handleBug(newbie, easy);
+        handleBug(normal, easy);
+        handleBug(good, easy);
+
+        handleBug(newbie, middle);
+        handleBug(normal, middle);
+        handleBug(good, middle);
+
+        handleBug(newbie, hard);
+        handleBug(normal, hard);
+        handleBug(good, hard);
+    }
+
+    public void handleBug(Programmer programmer, Bug bug) {
+        if (programmer.type.equals("菜鳥") && bug.value > 0 && bug.value <= 20) {
+            programmer.solve(bug);
+        } else if (programmer.type.equals("普通") && bug.value > 20 && bug.value <= 50) {
+            programmer.solve(bug);
+        } else if (programmer.type.equals("優秀") && bug.value > 50 && bug.value <= 100) {
+            programmer.solve(bug);
+        }
+    }
+}
+```
+
+程式碼邏輯很簡單，我們讓三種類型的程式設計師依次嘗試解決 bug，如果 bug 難度在自己能解決的範圍內，則自己處理此 bug。
+
+執行程式，輸出如下：
+
+```java
+菜鳥程式設計師解決了一個難度為 20 的 bug
+普通程式設計師解決了一個難度為 50 的 bug
+優秀程式設計師解決了一個難度為 100 的 bug
+```
+
+輸出沒有問題，說明功能完美實現了，但在這個程式中，我們讓每個程式設計師都嘗試處理了每一個 bug，這也就相當於大家圍著討論每個 bug 該由誰解決，這無疑是非常低效的做法。那麼我們要怎麼才能最佳化呢？
+
+#### “解決bug”程式2.0
+
+實際上，許多公司會選擇讓專案經理來分派任務，專案經理會根據 bug 的難度指派給不同的人解決。
+
+引入 ProjectManager 類：
+
+```java
+public class ProjectManager {
+    Programmer newbie = new Programmer("菜鳥");
+    Programmer normal = new Programmer("普通");
+    Programmer good = new Programmer("優秀");
+
+    public void assignBug(Bug bug) {
+        if (bug.value > 0 && bug.value <= 20) {
+            System.out.println("專案經理將這個簡單的 bug 分配給了菜鳥程式設計師");
+            newbie.solve(bug);
+        } else if (bug.value > 20 && bug.value <= 50) {
+            System.out.println("專案經理將這個中等的 bug 分配給了普通程式設計師");
+            normal.solve(bug);
+        } else if (bug.value > 50 && bug.value <= 100) {
+            System.out.println("專案經理將這個困難的 bug 分配給了優秀程式設計師");
+            good.solve(bug);
+        }
+    }
+}
+```
+
+我們讓專案經理管理所有的程式設計師，並且根據 bug 的難度指派任務。這樣一來，所有的 bug 只需傳給專案經理分配即可，修改客戶端如下：
+
+```java
+import org.junit.Test;
+
+public class Client2 {
+    @Test
+    public void test() {
+        ProjectManager manager = new ProjectManager();
+
+        Bug easy = new Bug(20);
+        Bug middle = new Bug(50);
+        Bug hard = new Bug(100);
+
+        manager.assignBug(easy);
+        manager.assignBug(middle);
+        manager.assignBug(hard);
+    }
+}
+```
+
+執行程式，輸出如下：
+
+```java
+專案經理將這個簡單的 bug 分配給了菜鳥程式設計師
+菜鳥程式設計師解決了一個難度為 20 的 bug
+專案經理將這個中等的 bug 分配給了普通程式設計師
+普通程式設計師解決了一個難度為 50 的 bug
+專案經理將這個困難的 bug 分配給了優秀程式設計師
+優秀程式設計師解決了一個難度為 100 的 bug
+```
+
+看起來很美好，除了專案經理在罵罵咧咧地反駁這個方案。
+
+在這個經過修改的程式中，專案經理一個人承擔了分配所有 bug 這個體力活。程式沒有變得簡潔，只是把複雜的邏輯從客戶端轉移到了專案經理類中。
+
+而且專案經理類承擔了過多的職責，如果以後新增一類程式設計師，必須改動專案經理類，將其處理 bug 的職責插入分支判斷語句中，違反了單一職責原則和開閉原則。
+
+所以，我們需要更優的解決方案，那就是——責任鏈模式！
+
+#### “解決bug”程式3.0
+
+> 責任鏈模式：使多個物件都有機會處理請求，從而避免請求的傳送者和接收者之間的耦合關係。將這些物件連成一條鏈，並沿著這條鏈傳遞該請求，直到有一個物件處理它為止。
+
+在本例的場景中，每個程式設計師的責任都是“解決這個 bug”，當測試提出一個 bug 時，可以走這樣一條責任鏈：
+
+* 先交由菜鳥程式設計師之手，如果是簡單的 bug，菜鳥程式設計師自己處理掉。如果這個 bug 對於菜鳥程式設計師來說太難了，交給普通程式設計師
+
+* 如果是中等難度的 bug，普通程式設計師處理掉。如果他也解決不了，交給優秀程式設計師
+
+* 優秀程式設計師處理掉困難的 bug
+
+有的讀者會提出疑問，如果優秀程式設計師也無法處理這個 bug 呢？
+
+——那當然是處理掉這個假冒優秀程式設計師。
+
+修改客戶端如下：
+
+```java
+import org.junit.Test;
+
+public class Client3 {
+    @Test
+    public void test() throws Exception {
+        Programmer newbie = new Programmer("菜鳥");
+        Programmer normal = new Programmer("普通");
+        Programmer good = new Programmer("優秀");
+
+        Bug easy = new Bug(20);
+        Bug middle = new Bug(50);
+        Bug hard = new Bug(100);
+
+        // 鏈式傳遞責任
+        if (!handleBug(newbie, easy)) {
+            if (!handleBug(normal, easy)) {
+                if (!handleBug(good, easy)) {
+                    throw new Exception("Kill the fake good programmer!");
+                }
+            }
+        }
+
+        if (!handleBug(newbie, middle)) {
+            if (!handleBug(normal, middle)) {
+                if (!handleBug(good, middle)) {
+                    throw new Exception("Kill the fake good programmer!");
+                }
+            }
+        }
+
+        if (!handleBug(newbie, hard)) {
+            if (!handleBug(normal, hard)) {
+                if (!handleBug(good, hard)) {
+                    throw new Exception("Kill the fake good programmer!");
+                }
+            }
+        }
+    }
+
+    public boolean handleBug(Programmer programmer, Bug bug) {
+        if (programmer.type.equals("菜鳥") && bug.value > 0 && bug.value <= 20) {
+            programmer.solve(bug);
+            return true;
+        } else if (programmer.type.equals("普通") && bug.value > 20 && bug.value <= 50) {
+            programmer.solve(bug);
+            return true;
+        } else if (programmer.type.equals("優秀") && bug.value > 50 && bug.value <= 100) {
+            programmer.solve(bug);
+            return true;
+        }
+        return false;
+    }
+}
+```
+
+三個巢狀的 if 條件句就組成了一條 `菜鳥-> 普通 -> 優秀` 的責任鏈。我們使 handleBug 方法返回一個 boolean 值，如果此 bug 被處理了，返回 true；否則返回 false，使得責任沿著 `菜鳥-> 普通 -> 優秀`這條鏈繼續傳遞，這就是責任鏈模式的思路。
+
+執行程式，輸出如下：
+
+```java
+菜鳥程式設計師解決了一個難度為 20 的 bug
+普通程式設計師解決了一個難度為 50 的 bug
+優秀程式設計師解決了一個難度為 100 的 bug
+```
+
+熟悉責任鏈模式的同學應該可以看出，這個責任鏈模式和我們平時使用的不太一樣。事實上，這段程式碼已經很好地體現了責任鏈模式的基本思想。我們平時使用的責任鏈模式只是在面向物件的基礎上，將這段程式碼封裝了一下。那麼接下來我們就來對這段程式碼進行封裝，將它變成規範的責任鏈模式的寫法。
+
+#### “解決bug”程式4.0
+
+新建一個程式設計師抽象類：
+
+```java
+public abstract class Programmer {
+    protected Programmer next;
+
+    public void setNext(Programmer next) {
+        this.next = next;
+    }
+
+    abstract void handle(Bug bug);
+}
+```
+
+在這個抽象類中：
+
+* next 物件表示如果自己解決不了，需要將責任傳遞給的下一個人；
+
+* handle 方法表示自己處理此 bug 的邏輯，在這裡判斷是自己解決或者繼續傳遞。
+
+新建菜鳥程式設計師類：
+
+```java
+public class NewbieProgrammer extends Programmer {
+
+    @Override
+    public void handle(Bug bug) {
+        if (bug.value > 0 && bug.value <= 20) {
+            solve(bug);
+        } else if (next != null) {
+            next.handle(bug);
+        }
+    }
+
+    private void solve(Bug bug) {
+        System.out.println("菜鳥程式設計師解決了一個難度為 " + bug.value + " 的 bug");
+    }
+}
+```
+
+新建普通程式設計師類：
+
+```java
+public class NormalProgrammer extends Programmer {
+
+    @Override
+    public void handle(Bug bug) {
+        if (bug.value > 20 && bug.value <= 50) {
+            solve(bug);
+        } else if (next != null) {
+            next.handle(bug);
+        }
+    }
+
+    private void solve(Bug bug) {
+        System.out.println("普通程式設計師解決了一個難度為 " + bug.value + " 的 bug");
+    }
+}
+```
+
+新建優秀程式設計師類：
+
+````java
+public class GoodProgrammer extends Programmer {
+
+    @Override
+    public void handle(Bug bug) {
+        if (bug.value > 50 && bug.value <= 100) {
+            solve(bug);
+        } else if (next != null) {
+            next.handle(bug);
+        }
+    }
+
+    private void solve(Bug bug) {
+        System.out.println("優秀程式設計師解決了一個難度為 " + bug.value + " 的 bug");
+    }
+}
+````
+
+客戶端測試：
+
+```java
+import org.junit.Test;
+
+public class Client4 {
+    @Test
+    public void test() {
+        NewbieProgrammer newbie = new NewbieProgrammer();
+        NormalProgrammer normal = new NormalProgrammer();
+        GoodProgrammer good = new GoodProgrammer();
+
+        Bug easy = new Bug(20);
+        Bug middle = new Bug(50);
+        Bug hard = new Bug(100);
+
+        // 組成責任鏈
+        newbie.setNext(normal);
+        normal.setNext(good);
+
+        // 從菜鳥程式設計師開始，沿著責任鏈傳遞
+        newbie.handle(easy);
+        newbie.handle(middle);
+        newbie.handle(hard);
+    }
+}
+```
+
+在客戶端中，我們透過 setNext() 方法將三個程式設計師組成了一條責任鏈，由菜鳥程式設計師接收所有的 bug，發現自己不能處理的 bug，就傳遞給普通程式設計師，普通程式設計師收到 bug 後，如果發現自己不能解決，則傳遞給優秀程式設計師，這就是規範的責任鏈模式的寫法了。
+
+責任鏈思想在生活中有很多應用，比如假期審批、加薪申請等，在員工提出申請後，從經理開始，由你的經理決定自己處理或是交由更上一層的經理處理。
+
+再比如處理客戶投訴時，從基層的客服人員開始，決定自己迴應或是上報給領導，領導再判斷是否繼續上報。
+
+理清了責任鏈模式，筆者突然回想起，公司的測試組每次提出 bug 後，總是先指派給我！一瞬間彷彿明白了什麼了不得的道理，不禁陷入了沉思。
+
+#### 責任鏈模式小結
+
+透過這個例子，我們已經瞭解到，責任鏈主要用於處理 職責相同，程度不同的類。
+
+其主要優點有：
+
+* 降低了物件之間的耦合度。在責任鏈模式中，客戶只需要將請求傳送到責任鏈上即可，無須關心請求的處理細節和請求的傳遞過程，所以責任鏈將請求的傳送者和請求的處理者解耦了。
+
+* 擴充套件性強，滿足開閉原則。可以根據需要增加新的請求處理類。
+
+* 靈活性強。可以動態地改變鏈內的成員或者改變鏈的次序來適應流程的變化。
+
+* 簡化了物件之間的連線。每個物件只需保持一個指向其後繼者的引用，不需保持其他所有處理者的引用，這避免了使用眾多的條件判斷語句。
+
+* 責任分擔。每個類只需要處理自己該處理的工作，不該處理的傳遞給下一個物件完成，明確各類的責任範圍，符合類的單一職責原則。不再需要 “專案經理” 來處理所有的責任分配任務。
+
+但我們在使用中也發現了它的一個明顯缺點，如果這個 bug 沒人處理，可能導致 “程式設計師祭天” 異常。其主要缺點有：
+
+* 不能保證每個請求一定被處理，該請求可能一直傳到鏈的末端都得不到處理。
+
+* 如果責任鏈過長，請求的處理可能涉及多個處理物件，系統性能將受到一定影響。
+
+* 責任鏈建立的合理性要靠客戶端來保證，增加了客戶端的複雜性，可能會由於責任鏈拼接次序錯誤而導致系統出錯，比如可能出現迴圈呼叫。
+
+
+
+### 命令模式
+
+------
+
+近年來，智慧家居越來越流行。躺在家中，只需要開啟對應的 app，就可以隨手控制家電開關。但隨之而來一個問題，手機裡的 app 實在是太多了，每一個傢俱公司都想要提供一個 app 給使用者，以求增加使用者粘性，推廣他們的其他產品等。
+
+站在使用者的角度來看，有時我們只想開啟一下電燈，卻要先看到惱人的 “新式電燈上新” 的彈窗通知，讓人煩不勝煩。如果能有一個萬能遙控器將所有的智慧家居開關綜合起來，統一控制，一定會方便許多。
+
+說幹就幹，筆者立馬開啟 PS，設計了一張草圖：
+
+![](DesignPatterns-tw.assets/uhLb7dKk_z5UY.png)
+
+“咳咳，我對這個 app 的設計理念呢，是基於 “簡潔就是美” 的原則。一個好的設計，首先，最重要的一點就是 '接地氣'。當然，我也可以用一些華麗的素材拼接出一個花裡胡哨的設計，但，那是一個最低階的設計師才會做的事情...”
+
+> 翻譯：He has no UI design skills.
+
+總之 UI 設計完成啦，我們再來看下四個智慧家居類的結構。
+
+大門類：
+
+```java
+public class Door {
+    public void openDoor() {
+        System.out.println("門打開了");
+    }
+
+    public void closeDoor() {
+        System.out.println("門關閉了");
+    }
+}
+```
+
+電燈類：
+
+```java
+public class Light {
+    public void lightOn() {
+        System.out.println("打開了電燈");
+    }
+
+    public void lightOff() {
+        System.out.println("關閉了電燈");
+    }
+}
+```
+
+電視類：
+
+```java
+public class Tv {
+    public void TurnOnTv() {
+        System.out.println("電視打開了");
+    }
+
+    public void TurnOffTv() {
+        System.out.println("電視關閉了");
+    }
+}
+```
+
+音樂類：
+
+```java
+public class Music {
+    public void play() {
+        System.out.println("開始播放音樂");
+    }
+
+    public void stop() {
+        System.out.println("停止播放音樂");
+    }
+}
+```
+
+由於是不同公司的產品，所以介面有所不同，接下來就一起來實現我們的萬能遙控器！
+
+#### 萬能遙控器 1.0
+
+不一會兒，我們就寫出了下面的程式碼：
+
+```java
+// 初始化開關
+Switch switchDoor = 省略繫結UI程式碼;
+Switch switchLight = 省略繫結UI程式碼;
+Switch switchTv = 省略繫結UI程式碼;
+Switch switchMusic = 省略繫結UI程式碼;
+
+// 初始化智慧家居
+Door door = new Door();
+Light light = new Light();
+Tv tv = new Tv();
+Music music = new Music();
+
+// 大門開關遙控
+switchDoor.setOnCheckedChangeListener((view, isChecked) -> {
+    if (isChecked) {
+        door.openDoor();
+    } else {
+        door.closeDoor();
+    }
+});
+// 電燈開關遙控
+switchLight.setOnCheckedChangeListener((view, isChecked) -> {
+    if (isChecked) {
+        light.lightOn();
+    } else {
+        light.lightOff();
+    }
+});
+// 電視開關遙控
+switchTv.setOnCheckedChangeListener((view, isChecked) -> {
+    if (isChecked) {
+        tv.TurnOnTv();
+    } else {
+        tv.TurnOffTv();
+    }
+});
+// 音樂開關遙控
+switchMusic.setOnCheckedChangeListener((view, isChecked) -> {
+    if (isChecked) {
+        music.play();
+    } else {
+        music.stop();
+    }
+});
+```
+
+這份程式碼很直觀，在每個開關狀態改變時，呼叫對應家居的 API 實現開啟或關閉。
+
+只有這樣的功能實在是太單一了，接下來我們再為它新增一個有趣的功能。
+
+#### 萬能遙控器 2.0
+
+一般來說，電視遙控器上都有一個回退按鈕，用來回到上一個頻道。相當於文字編輯器中的 “撤銷” 功能，既然別的小朋友都有，那我們也要！
+
+設計獅本獅馬不停蹄地設計了 UI 2.0：
+
+![](DesignPatterns-tw.assets/SHvz2WTg_NsGA.png)
+
+UI 設計倒是簡單，底部新增一個按鈕即可。程式碼設計就比較複雜了，我們需要儲存上一步操作，並且將其回退。
+
+一個很容易想到的想法是：設計一個列舉類 Operation，代表每一步的操作：
+
+```java
+public enum Operation {
+    DOOR_OPEN,
+    DOOR_CLOSE,
+    LIGHT_ON,
+    LIGHT_OFF,
+    TV_TURN_ON,
+    TV_TURN_OFF,
+    MUSIC_PLAY,
+    MUSIC_STOP
+}
+```
+
+然後在客戶端定義一個 Operation 變數，變數名字叫 lastOperation，在每一步操作後，更新此變數。然後在撤銷按鈕的點選事件中，根據上一步的操作實現回退：
+
+```java
+public class Client {
+
+    // 上一步的操作
+    Operation lastOperation;
+    
+    @Test
+    protected void test() {
+        
+        // 初始化開關和撤銷按鈕
+        Switch switchDoor = 省略繫結UI程式碼;
+        Switch switchLight = 省略繫結UI程式碼;
+        Switch switchTv = 省略繫結UI程式碼;
+        Switch switchMusic = 省略繫結UI程式碼;
+        Button btnUndo = 省略繫結UI程式碼;
+
+        // 初始化智慧家居
+        Door door = new Door();
+        Light light = new Light();
+        Tv tv = new Tv();
+        Music music = new Music();
+
+        // 大門開關遙控
+        switchDoor.setOnCheckedChangeListener((view, isChecked) -> {
+            if (isChecked) {
+                lastOperation = Operation.DOOR_OPEN;
+                door.openDoor();
+            } else {
+                lastOperation = Operation.DOOR_CLOSE;
+                door.closeDoor();
+            }
+        });
+
+        // 電燈開關遙控
+        switchLight.setOnCheckedChangeListener((view, isChecked) -> {
+            if (isChecked) {
+                lastOperation = Operation.LIGHT_ON;
+                light.lightOn();
+            } else {
+                lastOperation = Operation.LIGHT_OFF;
+                light.lightOff();
+            }
+        });
+
+        ... 電視、音樂類似
+
+        btnUndo.setOnClickListener(view -> {
+            if (lastOperation == null) return;
+            // 撤銷上一步
+            switch (lastOperation) {
+                case DOOR_OPEN:
+                    door.closeDoor();
+                    break;
+                case DOOR_CLOSE:
+                    door.openDoor();
+                    break;
+                case LIGHT_ON:
+                    light.lightOff();
+                    break;
+                case LIGHT_OFF:
+                    light.lightOn();
+                    break;
+                ... 電視、音樂類似
+            }
+        });
+    }
+}
+```
+
+大功告成，不過這份程式碼只實現了撤銷一步，如果我們需要實現撤銷多步怎麼做呢？
+
+思考一下，每次回退時，都是先將最後一步 Operation 撤銷。對於這種後進先出的結構，我們自然就會想到——棧結構。使用棧結構實現回退多步的程式碼如下：
+
+```java
+public class Client {
+
+    // 所有的操作
+    Stack<Operation> operations = new Stack<>();
+
+    @Test
+    protected void test() {
+
+        // 初始化開關和撤銷按鈕
+        Switch switchDoor = 省略繫結UI程式碼;
+        Switch switchLight = 省略繫結UI程式碼;
+        Switch switchTv = 省略繫結UI程式碼;
+        Switch switchMusic = 省略繫結UI程式碼;
+        Button btnUndo = 省略繫結UI程式碼;
+
+        // 初始化智慧家居
+        Door door = new Door();
+        Light light = new Light();
+        Tv tv = new Tv();
+        Music music = new Music();
+
+        // 大門開關遙控
+        switchDoor.setOnCheckedChangeListener((view, isChecked) -> {
+            if (isChecked) {
+                operations.push(Operation.DOOR_OPEN);
+                door.openDoor();
+            } else {
+                operations.push(Operation.DOOR_CLOSE);
+                door.closeDoor();
+            }
+        });
+
+        // 電燈開關遙控
+        switchLight.setOnCheckedChangeListener((view, isChecked) -> {
+            if (isChecked) {
+                operations.push(Operation.LIGHT_ON);
+                light.lightOn();
+            } else {
+                operations.push(Operation.LIGHT_OFF);
+                light.lightOff();
+            }
+        });
+
+        ...電視、音樂類似
+
+        // 撤銷按鈕
+        btnUndo.setOnClickListener(view -> {
+            if (operations.isEmpty()) return;
+            // 彈出棧頂的上一步操作
+            Operation lastOperation = operations.pop();
+            // 撤銷上一步
+            switch (lastOperation) {
+                case DOOR_OPEN:
+                    door.closeDoor();
+                    break;
+                case DOOR_CLOSE:
+                    door.openDoor();
+                    break;
+                case LIGHT_ON:
+                    light.lightOff();
+                    break;
+                case LIGHT_OFF:
+                    light.lightOn();
+                    break;
+                ...電視、音樂類似
+            }
+        });
+    }
+}
+```
+
+我們將每一步 Operation 記錄到棧中，每次撤銷時，彈出棧頂的 Operation，再使用 switch 語句判斷，將其恢復。
+
+雖然實現了功能，但程式碼明顯已經變得越來越臃腫了，因為遙控器知道了太多的細節，它必須要知道每個家居的呼叫方式。以後有開關加入時，不僅要修改 Status 類，增加新的 Operation，還要修改客戶端，增加新的分支判斷，導致這個類變成一個龐大的類。不僅違背了單一權責原則，還違背了開閉原則，所以我們不得不思考怎麼最佳化這份程式碼。
+
+#### 萬能遙控器 3.0
+
+我們期待能有一種設計，讓遙控器不需要知道家居的介面。它只需要負責監聽使用者按下開關，再根據開關狀態發出正確的命令，對應的家居在收到命令後做出響應。就可以達到將 “行為請求者” 和 ”行為實現者“ 解耦的目的。
+
+先定義一個命令介面：
+
+```java
+public interface ICommand {
+    void execute();
+}
+```
+
+介面中只有一個 execute 方法，表示 “執行” 命令。
+
+定義開門命令，實現此介面：
+
+```java
+public class DoorOpenCommand implements ICommand {
+    private Door door;
+
+    public void setDoor(Door door) {
+        this.door = door;
+    }
+
+    @Override
+    public void execute() {
+        door.openDoor();
+    }
+}
+```
+
+關門命令：
+
+```java
+public class DoorCloseCommand implements ICommand {
+    private Door door;
+
+    public void setDoor(Door door) {
+        this.door = door;
+    }
+
+
+    @Override
+    public void execute() {
+        door.closeDoor();
+    }
+}
+```
+
+開燈命令：
+
+```java
+public class LightOnCommand implements ICommand {
+
+    Light light;
+
+    public void setLight(Light light) {
+        this.light = light;
+    }
+
+    @Override
+    public void execute() {
+        light.lightOn();
+    }
+}
+```
+
+關門命令：
+
+```java
+public class LightOffCommand implements ICommand {
+
+    Light light;
+
+    public void setLight(Light light) {
+        this.light = light;
+    }
+
+    @Override
+    public void execute() {
+        light.lightOff();
+    }
+}
+```
+
+電視、音樂的命令類似。
+
+可以看到，我們將家居控制的程式碼轉移到了命令類中，當命令執行時，呼叫對應傢俱的 API 實現開啟或關閉。
+
+客戶端程式碼：
+
+```java
+// 初始化命令
+DoorOpenCommand doorOpenCommand = new DoorOpenCommand();
+DoorCloseCommand doorCloseCommand = new DoorCloseCommand();
+doorOpenCommand.setDoor(door);
+doorCloseCommand.setDoor(door);
+LightOnCommand lightOnCommand = new LightOnCommand();
+LightOffCommand lightOffCommand = new LightOffCommand();
+lightOnCommand.setLight(light);
+lightOffCommand.setLight(light);
+...電視、音樂類似
+
+// 大門開關遙控
+switchDoor.setOnCheckedChangeListener((view, isChecked) -> {
+    if (isChecked) {
+        doorOpenCommand.execute();
+    } else {
+        doorCloseCommand.execute();
+    }
+});
+// 電燈開關遙控
+switchLight.setOnCheckedChangeListener((view, isChecked) -> {
+    if (isChecked) {
+        lightOnCommand.execute();
+    } else {
+        lightOffCommand.execute();
+    }
+});
+...電視、音樂類似
+```
+
+現在，遙控器只知道使用者控制開關後，需要執行對應的命令，遙控器並不知道這個命令會執行什麼內容，它只負責呼叫 execute 方法，達到了隱藏技術細節的目的。
+
+與此同時，我們還獲得了一個附帶的好處。由於每個命令都被抽象成了同一個介面，我們可以將開關程式碼統一起來。客戶端最佳化如下：
+
+```java
+public class Client {
+
+    @Test
+    protected void test() {
+        ...初始化
+
+        // 大門開關遙控
+        switchDoor.setOnCheckedChangeListener((view, isChecked) -> {
+            handleCommand(isChecked, doorOpenCommand, doorCloseCommand);
+        });
+        // 電燈開關遙控
+        switchLight.setOnCheckedChangeListener((view, isChecked) -> {
+            handleCommand(isChecked, lightOnCommand, lightOffCommand);
+        });
+        // 電視開關遙控
+        switchTv.setOnCheckedChangeListener((view, isChecked) -> {
+            handleCommand(isChecked, turnOnTvCommand, turnOffTvCommand);
+        });
+        // 音樂開關遙控
+        switchMusic.setOnCheckedChangeListener((view, isChecked) -> {
+            handleCommand(isChecked, musicPlayCommand, musicStopCommand);
+        });
+    }
+
+    private void handleCommand(boolean isChecked, ICommand openCommand, ICommand closeCommand) { 
+        if (isChecked) {
+            openCommand.execute();
+        } else {
+            closeCommand.execute();
+        }
+    }
+}
+```
+
+不知不覺中，我們就寫出了命令模式的程式碼。來看下命令模式的定義：
+
+> 命令模式：將一個請求封裝為一個物件，從而使你可用不同的請求對客戶進行引數化，對請求排隊或記錄請求日誌，以及支援可撤銷的操作。
+
+使用命令模式後，現在我們要實現撤銷功能會非常容易。
+
+首先，在命令介面中，新增 undo 方法：
+
+```java
+public interface ICommand {
+    
+    void execute();
+
+    void undo();
+}
+```
+
+開門命令中新增 undo：
+
+```java
+public class DoorOpenCommand implements ICommand {
+    private Door door;
+
+    public void setDoor(Door door) {
+        this.door = door;
+    }
+
+    @Override
+    public void execute() {
+        door.openDoor();
+    }
+
+    @Override
+    public void undo() {
+        door.closeDoor();
+    }
+}
+```
+
+關門命令中新增 undo：
+
+```java
+public class DoorCloseCommand implements ICommand {
+    private Door door;
+
+    public void setDoor(Door door) {
+        this.door = door;
+    }
+
+    @Override
+    public void execute() {
+        door.closeDoor();
+    }
+
+    @Override
+    public void undo() {
+        door.openDoor();
+    }
+}
+```
+
+開燈命令中新增 undo：
+
+```java
+public class LightOnCommand implements ICommand {
+
+    Light light;
+
+    public void setLight(Light light) {
+        this.light = light;
+    }
+
+    @Override
+    public void execute() {
+        light.lightOn();
+    }
+
+    @Override
+    public void undo() {
+        light.lightOff();
+    }
+}
+```
+
+關燈命令中新增 undo：
+
+```java
+public class LightOffCommand implements ICommand {
+
+    Light light;
+
+    public void setLight(Light light) {
+        this.light = light;
+    }
+
+    @Override
+    public void execute() {
+        light.lightOff();
+    }
+
+    @Override
+    public void undo() {
+        light.lightOn();
+    }
+}
+```
+
+電視、音樂命令類似。
+
+客戶端：
+
+```java
+public class Client {
+
+    // 所有的命令
+    Stack<ICommand> commands = new Stack<>();
+
+    @Test
+    protected void test() {
+        ...初始化
+
+        // 大門開關遙控
+        switchDoor.setOnCheckedChangeListener((view, isChecked) -> {
+            handleCommand(isChecked, doorOpenCommand, doorCloseCommand);
+        });
+        // 電燈開關遙控
+        switchLight.setOnCheckedChangeListener((view, isChecked) -> {
+            handleCommand(isChecked, lightOnCommand, lightOffCommand);
+        });
+        // 電視開關遙控
+        switchTv.setOnCheckedChangeListener((view, isChecked) -> {
+            handleCommand(isChecked, turnOnTvCommand, turnOffTvCommand);
+        });
+        // 音樂開關遙控
+        switchMusic.setOnCheckedChangeListener((view, isChecked) -> {
+            handleCommand(isChecked, musicPlayCommand, musicStopCommand);
+        });
+
+        // 撤銷按鈕
+        btnUndo.setOnClickListener(view -> {
+            if (commands.isEmpty()) return;
+            // 撤銷上一個命令
+            ICommand lastCommand = commands.pop();
+            lastCommand.undo();
+        });
+    }
+
+    private void handleCommand(boolean isChecked, ICommand openCommand, ICommand closeCommand) {
+        if (isChecked) {
+            commands.push(openCommand);
+            openCommand.execute();
+        } else {
+            commands.push(closeCommand);
+            closeCommand.execute();
+        }
+    }
+}
+```
+
+我們同樣使用了一個棧結構，用於儲存所有的命令，在每次執行命令前，將命令壓入棧中。撤銷時，彈出棧頂的命令，執行其 undo 方法即可。
+
+命令模式使得客戶端的職責更加簡潔、清晰了，命令執行、撤銷的程式碼都被隱藏到了命令類中。唯一的缺點是 —— 多了很多的命令類，因為我們必須針對每一個命令都設計一個命令類，容易導致類爆炸。
+
+除了撤銷方便外，命令模式還有一個優點，那就是宏命令的使用，宏命令也就是組合多個命令的 “宏大的命令”。
+
+#### 宏命令
+
+在我們學習宏命令前，先來了解一下宏。在使用 word 時，有時會彈出一個提示：是否啟用宏？
+
+在筆者小的時候（當然現在也沒有很老），小小的眼睛裡有大大的疑惑：這個 “宏” 是什麼意思呢？簡簡單單一個字，卻看起來如此的高大上，一定是一個很難的東西吧。
+
+其實宏一點也不難，宏（英語：Macro）的意思是 “批次處理”，能夠幫我們實現合併多個操作。
+
+比如，在 word 中，我們需要設定一個文字加粗、斜體和字號 36。通常來說，我們需要三個步驟：
+
+* 選中文字，設定加粗
+
+* 選中文字，設定斜體
+
+* 選中文字，設定字號 36
+
+如果有一個設定，能一鍵實現這三個步驟，這個設定就稱為一個宏。
+
+（就這？）
+
+如果我們有大量的文字需要這三個設定，定義一個宏就可以省下許多重複操作。
+
+聽起來是不是很像格式刷，不過宏遠比格式刷要強大。比如宏可以實現將一段文字一鍵加上 `【】`，在 Excel 中的宏還可以一鍵實現 `居中 `+ `排序 `等操作。
+
+比如筆者寫的一個宏，效果是執行時給兩個漢字自動加上中括號：
+
+![](DesignPatterns-tw.assets/TewnnGIm_HYPC.gif)
+
+這個宏對應的 vba 程式碼長這樣：
+
+```java
+Sub Macro1()
+'
+' Macro1 Macro
+'
+'
+    Selection.TypeText Text:=ChrW(12304)
+    Selection.MoveRight Unit:=wdCharacter, Count:=2
+    Selection.TypeText Text:=ChrW(12305)
+End Sub
+```
+
+它執行的邏輯就是先新增`【`，再向後移動兩個字元，再新增`】`，這個宏幫我們一鍵實現了三個步驟。
+
+當然這份 vba 程式碼完全是筆者為了秀一秀，不是我們講解的重點。
+
+重點是瞭解了宏，就不難理解宏命令了。宏命令就是 **將多個命令合併起來組成的命令**。
+
+接下來我們給遙控器新增一個 “睡眠” 按鈕，按下時可以一鍵關閉大門，關閉電燈，關閉電視、開啟音樂（聽著音樂睡覺，就是這麼優雅）。UI 設計...就不看了吧，這時就可以使用宏命令：
+
+```java
+public class MacroCommand implements ICommand {
+    // 定義一組命令
+    List<ICommand> commands;
+
+    public MacroCommand(List<ICommand> commands) {
+        this.commands = commands;
+    }
+
+    @Override
+    public void execute() {
+        // 宏命令執行時，每個命令依次執行
+        for (int i = 0; i < commands.size(); i++) {
+            commands.get(i).execute();
+        }
+    }
+
+    @Override
+    public void undo() {
+        // 宏命令撤銷時，每個命令依次撤銷
+        for (int i = 0; i < commands.size(); i++) {
+            commands.get(i).undo();
+        }
+    }
+}
+```
+
+有了宏命令，我們就可以任意組合多個命令，並且完全不會增加程式結構的複雜度。
+
+客戶端程式碼如下：
+
+```java
+// 定義睡眠宏命令
+MacroCommand sleepCommand = new MacroCommand(Arrays.asList(doorCloseCommand, lightOffCommand, turnOffTvCommand, musicPlayCommand));
+// 睡眠按鈕
+btnSleep.setOnClickListener(view -> {
+    // 將執行的命令儲存到棧中，以便撤銷
+    commands.push(sleepCommand);
+    // 執行睡眠命令
+    sleepCommand.execute();
+});
+```
+
+可以看到，我們將 doorCloseCommand, lightOffCommand, turnOffTvCommand, musicPlayCommand 三個命令組合到了宏命令 sleepCommand 中，這個宏命令的使用方式和普通命令一模一樣，因為它本身也是一個實現了 ICommand 介面的命令而已。
+
+#### 請求排隊
+
+前文的定義中講到，命令模式還可以用於請求排隊。那麼怎麼實現請求排隊功能呢？
+
+要實現請求排隊功能，只需建立一個命令佇列，將每個需要執行的命令依次傳入佇列中，然後工作執行緒不斷地從命令佇列中取出佇列頭的命令，再執行命令即可。
+
+事實上，安卓 app 的介面就是這麼實現的。原始碼中使用了一個阻塞式死迴圈 Looper，不斷地從 MessageQueue 中取出訊息，交給 Handler 處理，使用者的每一個操作也會透過 Handler 傳遞到 MessageQueue 中排隊執行。
+
+#### 命令模式小結
+
+命令模式可以說將封裝發揮得淋漓盡致。在我們平時的程式設計中，最常用的封裝是將擁有一類職責的物件封裝成類，而命令物件的唯一職責就是透過 execute 去呼叫一個方法，也就是說它將 “方法呼叫” 這個步驟封裝起來了，使得我們可以對 “方法呼叫” 進行排隊、撤銷等處理。
+
+命令模式的主要優點如下：
+
+* 降低系統的耦合度。將 “行為請求者” 和 ”行為實現者“ 解耦。
+
+* 擴充套件性強。增加或刪除命令非常方便，並且不會影響其他類。
+
+* 封裝 “方法呼叫”，方便實現 Undo 和 Redo 操作。
+
+* 靈活性強，可以實現宏命令。
+
+它的主要缺點是：
+
+* 會產生大量命令類。增加了系統的複雜性。
+
+
+
+### 直譯器模式
+
+------
+
+我國 IT 界歷來有一個漢語程式設計夢，雖然各方對於漢語程式設計爭論不休，甚至上升到民族大義的高度，本文不討論其對與錯，但我們不妨來嘗試一下，定義一個簡單的中文程式設計語法。
+
+在設計模式中，直譯器模式就是用來自定義語法的，它的定義如下。
+
+> 直譯器模式（Interpreter Pattern）：給定一門語言，定義它的文法的一種表示，並定義一個直譯器，該直譯器使用該表示來解釋語言中的句子。
+
+直譯器模式較為晦澀難懂，但本文我們仍然深入淺出，透過一個簡單的例子來學習直譯器模式：使用中文編寫出十以內的加減法公式。比如：
+
+* 輸入“一加一”，輸出結果 2
+
+* 輸入“一加一加一”，輸出結果 3
+
+* 輸入“二加五減三”，輸出結果 4
+
+* 輸入“七減五加四減一”，輸出結果 5
+
+* 輸入“九減五加三減一”，輸出結果 6
+
+看到這個需求，我們很容易想到一種寫法：將輸入的字串分割成單個字元，把數字字元透過`switch-case`轉換為數字，再透過計算符判斷是加法還是減法，對應做加、減計算，最後返回結果即可。
+
+的確可行，但這實在太面向過程了。眾所周知，面向過程程式設計會有耦合度高，不易擴充套件等缺點。接下來我們嘗試按照面向物件的寫法來實現這個功能。
+
+按照面向物件的程式設計思想，我們應該為公式中不同種類的元素建立一個對應的物件。那麼我們先分析一下公式中的成員：
+
+* 數字：`零到九`對應` 0 ~ 9`
+
+* 計算符：`加、減`對應`+、-`
+
+公式中僅有這兩種元素，其中對於數字的處理比較簡單，只需要透過 `switch-case` 將中文名翻譯成阿拉伯數字即可。
+
+計算符怎麼處理呢？計算符左右兩邊可能是單個數字，也可能是另一個計算公式。但無論是數字還是公式，兩者都有一個共同點，那就是他們都會返回一個整數：數字返回其本身，公式返回其計算結果。
+
+所以我們可以根據這個共同點提取出一個返回整數的介面，數字和計算符都作為該介面的實現類。在計算時，使用棧結構儲存資料，將數字和計算符統一作為此介面的實現類壓入棧中計算。
+
+> talk is cheap, show me the code.
+
+數字和計算符公共的介面：
+
+```java
+interface Expression {
+    int intercept();
+}
+```
+
+上文已經說到，數字和計算符都屬於表示式的一部分，他們的共同點是都會返回一個整數。從表示式計算出整數的過程，我們稱之為`解釋`（intercept）。
+
+對數字類的解釋實現起來相對比較簡單：
+
+```java
+public class Number implements Expression {
+    int number;
+
+    public Number(char word) {
+        switch (word) {
+            case '零':
+                number = 0;
+                break;
+            case '一':
+                number = 1;
+                break;
+            case '二':
+                number = 2;
+                break;
+            case '三':
+                number = 3;
+                break;
+            case '四':
+                number = 4;
+                break;
+            case '五':
+                number = 5;
+                break;
+            case '六':
+                number = 6;
+                break;
+            case '七':
+                number = 7;
+                break;
+            case '八':
+                number = 8;
+                break;
+            case '九':
+                number = 9;
+                break;
+            default:
+                break;
+        }
+    }
+
+    @Override
+    public int intercept() {
+        return number;
+    }
+}
+```
+
+在 Number 類的建構函式中，先將傳入的字元轉換為對應的數字。在解釋時將轉換後的數字返回即可。
+
+無論是加法還是減法，他們都是對左右兩個表示式進行操作，所以我們可以將計算符提取出共同的抽象父類：
+
+```java
+abstract class Operator implements Expression {
+    Expression left;
+    Expression right;
+
+    Operator(Expression left, Expression right) {
+        this.left = left;
+        this.right = right;
+    }
+}
+```
+
+在此抽象父類中，我們存入了兩個變數，表達計算符左右兩邊的表示式。
+
+加法類實現如下：
+
+```java
+class Add extends Operator {
+
+    Add(Expression left, Expression right) {
+        super(left, right);
+    }
+
+    @Override
+    public int intercept() {
+        return left.intercept() + right.intercept();
+    }
+}
+```
+
+減法類：
+
+```java
+class Sub extends Operator {
+
+    Sub(Expression left, Expression right) {
+        super(left, right);
+    }
+
+    @Override
+    public int intercept() {
+        return left.intercept() - right.intercept();
+    }
+}
+```
+
+加法類和減法類都繼承自 Operator 類，在對他們進行解釋時，將左右兩邊表示式解釋出的值相加或相減即可。
+
+數字類和計算符內都定義好了，這時我們只需要再編寫一個計算類將他們綜合起來，統一計算即可。
+
+計算類：
+
+```java
+class Calculator {
+    int calculate(String expression) {
+        Stack<Expression> stack = new Stack<>();
+        for (int i = 0; i < expression.length(); i++) {
+            char word = expression.charAt(i);
+            switch (word) {
+                case '加':
+                    stack.push(new Add(stack.pop(), new Number(expression.charAt(++i))));
+                    break;
+                case '減':
+                    stack.push(new Sub(stack.pop(), new Number(expression.charAt(++i))));
+                    break;
+                default:
+                    stack.push(new Number(word));
+                    break;
+            }
+        }
+        return stack.pop().intercept();
+    }
+}
+```
+
+在計算類中，我們使用棧結構儲存每一步操作。遍歷 expression 公式：
+
+* 遇到數字則將其壓入棧中；
+
+* 遇到計算符時，先將棧頂元素 pop 出來，再和下一個數字一起傳入計算符的建構函式中，組成一個計算符公式壓入棧中。
+
+![](DesignPatterns-tw.assets/1604308240-LsAMOW-4.gif)
+
+需要注意的是，入棧出棧過程並不會執行真正的計算，棧操作只是將表示式組裝成一個巢狀的類物件而已。比如：
+
+* “一加一”表示式，經過入棧出棧操作後，生成的物件是 `new Add(new Number('一'), new Number('一'))`
+
+* “二加五減三”表示式，經過入棧出棧操作後，生成的物件是 `new Sub(new Add(new Number('二'), new Number('五')), new Number('三'))`
+
+最後一步 `stack.pop().intercept()`，將棧頂的元素彈出，執行 `intercept()` ，這時才會執行真正的計算。計算時會將中文的數字和運算子分別解釋成計算機能理解的指令。
+
+測試類：
+
+```java
+public class Client {
+    @Test
+    public void test() {
+        Calculator calculator = new Calculator();
+        String expression1 = "一加一";
+        String expression2 = "一加一加一";
+        String expression3 = "二加五減三";
+        String expression4 = "七減五加四減一";
+        String expression5 = "九減五加三減一";
+        // 輸出： 一加一 等於 2
+        System.out.println(expression1 + " 等於 " + calculator.calculate(expression1));
+        // 輸出： 一加一加一 等於 3
+        System.out.println(expression2 + " 等於 " + calculator.calculate(expression2));
+        // 輸出： 二加五減三 等於 4
+        System.out.println(expression3 + " 等於 " + calculator.calculate(expression3));
+        // 輸出： 七減五加四減一 等於 5
+        System.out.println(expression4 + " 等於 " + calculator.calculate(expression4));
+        // 輸出： 九減五加三減一 等於 6
+        System.out.println(expression5 + " 等於 " + calculator.calculate(expression5));
+    }
+}
+```
+
+這就是直譯器模式，我們將一句中文的公式解釋給計算機，然後計算機為我們運算出了正確的結果。
+
+分析本例中公式的組成，我們可以發現幾條顯而易見的性質：
+
+* 數字類不可被拆分，屬於計算中的最小單元；
+
+* 加法類、減法類可以被拆分成兩個數字（或兩個公式）加一個計算符，他們不是計算的最小單元。
+
+在直譯器模式中，我們將不可拆分的最小單元稱之為終結表示式，可以被拆分的表示式稱之為非終結表示式。
+
+直譯器模式具有一定的拓展性，當需要新增其他計算符時，我們可以透過新增 Operator 的子類來完成。但新增後需要按照運算優先順序修改計算規則。可見一個完整的直譯器模式是非常複雜的，實際開發中幾乎沒有需要自定義直譯器的情況。
+
+直譯器模式有一個常見的應用，在我們平時匹配字串時，用到的正則表示式就是一個直譯器。
